@@ -6,5 +6,11 @@ python manage.py runserver
 python manage.py makemigrations
 python manage.py migrate
 
-test_acc@gmail.com
+admin:
+admin@gmail.com
 Password_565
+
+staff:
+username: test150
+Password: qwerty12554680
+email: staff@gmail.com
