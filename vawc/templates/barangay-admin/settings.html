@@ -1,0 +1,158 @@
+{% extends "../base/base_barangay.html" %}
+{% block title %}Home | Settings {% endblock %}
+{% load static %}
+{% block styles %}
+<style>
+    input[type="checkbox"] { 
+        transform: scale(1.5); 
+    } 
+</style>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h1 class="pt-2">Settings</h1>
+    <hr>
+    <div class="d-flex justify-content-start align-items-center my-2">
+        <label for="switchencrypt">Encrypt</label>
+        <div class="form-check form-switch text-center ms-3 me-2">
+            <input class="form-check-input" type="checkbox" role="switch" id="switchencrypt" {% if global.security_status == "encrypted" %}checked{% endif %}>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="confirmDecrpyt" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="staticBackdropLabel">Confrim Decrpyt</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="encrypt_form" method="post">
+            {% csrf_token %}
+
+            <div class="modal-body">
+                <input type="hidden" class="security_status" name="security_status" value="{{ global.security_status }}">
+                <input type="text" class="user_passkey" name="user_passkey" value="currentSpouses">
+                <p class="passkey-result"></p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button class="btn_security_status btn btn-primary" type="submit" class="">Decrypt</button>
+            </div>
+        </form>
+      </div>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    console.log("test")
+
+    const userPasskey = document.querySelector(".user_passkey")
+    const dataEncrypt = document.querySelector(".data_encrypt")
+    const buttonDecrypt = document.querySelector(".btn_security_status")
+    const parentModal = document.querySelector(".modal-content")
+    const passkeyResult = document.querySelector(".passkey-result")
+    const security_status = document.querySelector(".security_status")
+
+    const correctPasskey = "tite"
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const switchEncrypt = document.getElementById("switchencrypt");
+        const confirmDecryptModal = new bootstrap.Modal(document.getElementById("confirmDecrpyt"));
+        let switchToggledOff = false; // Variable to track if the switch is toggled off
+    
+        // Listen for the switch change event
+        switchEncrypt.addEventListener("change", function(e) {
+
+            console.log('change detected')
+
+            if (!this.checked) {
+                // If the switch is toggled off, prevent the default behavior
+                e.preventDefault();
+                // Show the modal when the switch is turned off
+                confirmDecryptModal.show();
+
+                buttonDecrypt.addEventListener("click", function(e) {
+                    $('#encrypt_form').submit(function(event) {
+                        event.preventDefault();
+                
+                        console.log(security_status.innerHTML)
+                
+                        var formData = $(this).serialize();
+                
+                        console.log(formData)
+                
+                        $.ajax({
+                            type: 'POST',
+                            url: '{% url "tite" %}',
+                            data: formData,
+                            success: function(response) {
+                                console.log(response.message)
+                
+                                if (response.success) {
+                                    console.log("good")
+                                    location.reload();
+                                } else {
+                                    passkeyResult.innerHTML = response.message
+                                    console.log("bad")
+                                }
+                            },
+                            error: function(xhr, errmsg, err) {
+                                $('#errorMessage').text('Error occurred. Please try again.');
+                            }
+                        });
+                    });
+                
+                })
+    
+                // Set the switchToggledOff flag to true
+                switchToggledOff = true;
+            } else {
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "tite" %}',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    data: {
+                        'security_status': 'decrypted'
+                    },
+                    success: function(response) {
+                        console.log(response.message)
+                
+                        if (response.success) {
+                            console.log("good")
+                            location.reload();
+                        } else {
+                            passkeyResult.innerHTML = response.message
+                            console.log("bad")
+                        }
+                    },
+                    error: function(xhr, errmsg, err) {
+                        $('#errorMessage').text('Error occurred. Please try again.');
+                    }
+                });
+            }
+        });
+    
+        // Listen for the modal hide event
+        confirmDecryptModal._element.addEventListener('hide.bs.modal', function () {
+
+            // If the switch was toggled off, update its state to off
+            if(security_status.value === "encrypted") {
+                switchEncrypt.checked = true;
+                // Reset the switchToggledOff flag
+                switchToggledOff = true;
+            }
+        });
+    });
+
+
+
+ </script>
+{% endblock scripts %}
+

@@ -1,0 +1,30 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-dark cust-bg" data-bs-theme="dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{% url 'home' %}">
+        <img src="{% static '/img/ecs-reactangle-ver2.png' %}" alt="VAWC Logo" width="180" height="70" class="d-inline-block align-text-top">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarColor01">
+        <ul class="navbar-nav mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'report violence' %}">Report a Violence</a>
+          </li>
+        </ul>
+        <div class="d-grid gap-2 d-lg-flex">
+          <button class="btn cust-outline-btn btn-sm" type="button">
+            <a class="text-light text-decoration-none" href="{% url 'login' %}">
+                <i class='bx bx-lock-alt fs-4'></i>
+            </a>
+          </button>
+        </div>
+      </div>
+    </div>
+</nav>
+  
+  

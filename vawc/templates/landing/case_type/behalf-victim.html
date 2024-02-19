@@ -1,0 +1,643 @@
+{% extends "../../base/base.html" %}
+{% block title %}Behalf of Victim{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container overflow-hidden py-4">
+    <!--multisteps-form-->
+    <div class="multisteps-form">
+      <!--progress bar-->
+      <div class="row d-flex justify-content-center">
+        <div class="col-12 col-lg-8 ml-auto mr-auto mb-4">
+          <div class="multisteps-form__progress">
+            <button class="multisteps-form__progress-btn js-active" type="button" title="Victim-Survivor Info">Victim-Survivor Info</button>
+            <button class="multisteps-form__progress-btn" type="button" title="Perpetrator Information">Perpetrator Information</button>
+            <button class="multisteps-form__progress-btn" type="button" title="Incident Information">Incident Information</button>
+            <button class="multisteps-form__progress-btn" type="button" title="Contact Person Information">Contact Person Information</button>
+            <button class="multisteps-form__progress-btn" type="button" title="Service Information">Service Information</button>
+          </div>
+        </div>
+      </div>
+      <!--form panels-->
+      <div class="row py-3">
+        <div class="col-12 col-lg-12">
+          <form class="multisteps-form__form" id="impact-victim-form" method="POST" action="{% url 'add_case' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+                <input type="hidden" name="type_of_case" value="Behalf">
+                <input type="hidden" id="victim_count" name="victim_count" value="1">
+                <input type="hidden" id="perpetrator_count" name="perpetrator_count" value="1">
+                <!--single form panel-->
+                <div class="multisteps-form__panel shadow p-4 rounded bg-white js-active" data-animation="slideHorz">
+                    <div class="multisteps-form__content">
+                        <h1 class="text-center pt-3"><strong>Victim-Survivor Information</strong></h1>
+                        <div class="container-fluid scroll overflow-auto" style="max-height: 500px;">
+                            <div id="victim-form_0">
+                                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-1 border-bottom border-3"></div>
+                                <div class="row"><!--First Row-->
+                                    <h5 id="victim_counter">Victim 1 <span></span></h5>
+                                    <h5 class="pt-3"><strong>Name:</strong></h5>
+
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2"> <!--Firstname-->
+                                    <label for="victim-firstname_0" class="form-label">First name: </label>
+                                    <input type="text" class="form-control" id="victim-firstname_0" name="victim-firstname_0">
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2"> <!--middlename-->
+                                    <label for="victim-middlename_0" class="form-label">Middle name: </label>
+                                    <input type="text" class="form-control" id="victim-middlename_0" name="victim-middlename_0">
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2"> <!--lastname-->
+                                    <label for="victim-lastname_0" class="form-label">Last name: </label>
+                                    <input type="text" class="form-control" id="victim-lastname_0" name="victim-lastname_0">
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2"> <!--suffix-->
+                                    <label for="victim-Suffix_0" class="form-label">Suffix: </label>
+                                    <select id="victim-Suffix_0" name="victim-Suffix_0" class="form-select">
+                                        <option value="none">N/A</option>
+                                        <option value="sr">Sr</option>
+                                        <option value="jr">Jr</option>
+                                        <option value="ii">II</option>
+                                        <option value="iii">III</option>
+                                        <option value="iv">IV</option>
+                                    </select>
+                                    </div>
+                                </div><!--End of First row-->
+
+                                <div class="row pt-3"><!--Start of second row-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                    <label for="victim-sex_0" class="form-label">Sex: </label>
+                                        <select id="victim-sex_0" name="victim-sex_0" class="form-select">
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="victim-date-of-birth_0"  class="form-label">Date of Birth: </label>
+                                        <input type="date" class="form-control" id="victim-date-of-birth_0" name="victim-date-of-birth_0">
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="victim-civilstatus_0" class="form-label">Civil Status: </label>
+                                        <select id="victim-civilstatus_0" name="victim-civilstatus_0"  class="form-select">
+                                            <option value="single">Single</option>
+                                            <option value="married">Married</option>
+                                            <option value="live-in">Live-In</option>
+                                            <option value="widowed">Widowed</option>
+                                            <option value="separated">Separated</option>
+                                        </select>
+                                    </div>
+
+                                </div><!--End of second row-->
+
+                                <div class="row pt-3 pb-3"><!--Start of third row-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="victim-nationality_0" class="form-label">Nationality: </label>
+                                        <input type="text" class="form-control" id="victim-nationality_0" name="victim-nationality_0"  placeholder="Filipino">
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="victim-contact-number_0" class="form-label">Contact Number:</label>
+                                        <input type="number" class="form-control" id="victim-contact-number_0" name="victim-contact-number_0" value="0">
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="victim-tel-number_0" class="form-label">Telephone Number:</label>
+                                        <input type="number" class="form-control"  id="victim-tel-number_0" name="victim-tel-number_0" value="0">
+                                    </div>
+                                </div><!--End of third row-->
+
+                                <div class="row pb-3"><!--Start of fourth row-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="victim-house-info_0" class="form-label">Unit no./House no./Building name:</label>
+                                        <input type="text" class="form-control" name="victim-house-info_0" id="victim-house-info_0">
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="victim-street_0" class="form-label">Street: </label>
+                                        <input type="text" class="form-control" id="victim-street_0" name="victim-street_0">
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-4 col-sm-8">
+                                        <label for="victim-barangay_0" class="form-label">Barangay: </label>
+                                        <input type="text" class="form-control" id="victim-barangay_0" name="victim-barangay_0">
+                                    </div><!--End of col-->
+                                </div><!--end of fourth row-->
+
+                                <div class="row pt-3 pb-3"><!--Start of fifth row-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8">
+                                        <label for="victim-province_0" class="form-label">Province: </label>
+                                        <input type="text" class="form-control" id="victim-province_0" name="victim-province_0" placeholder="Zamboanga Del Sur">
+                                    </div><!--end of col-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8">
+                                        <label for="victim-city_0" class="form-label">City / Mun: </label>
+                                        <input type="text" class="form-control" id="victim-city_0" placeholder="Zamboanga City" name="victim-city_0">
+                                    </div><!--emd of col-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="victim-region_0" class="form-label">Region: </label>
+                                        <select id="victim-region_0" name="victim-region_0" class="form-select">
+                                            <option value="region-I">Region I – Ilocos Region</option>
+                                            <option value="region-II">Region II – Cagayan Valley</option>
+                                            <option value="region-III">Region III – Central Luzon</option>
+                                            <option value="region-IV">Region IV‑A – CALABARZON</option>
+                                            <option value="mimaropa">MIMAROPA Region</option>
+                                            <option value="region-V">Region V – Bicol Region</option>
+                                            <option value="region-VI">Region VI – Western Visayas</option>
+                                            <option value="region-VII">Region VII – Central Visayas</option>
+                                            <option value="region-VIII">Region VIII – Eastern Visayas</option>
+                                            <option value="region-IX" selected>Region IX – Zamboanga Peninsula</option>
+                                            <option value="region-X">Region X – Northern Mindanao</option>
+                                            <option value="region-XI">Region XI – Davao Region</option>
+                                            <option value="region-XII">Region XII – SOCCSKSARGEN</option>
+                                            <option value="region-XIII">Region XIII – Caraga</option>
+                                            <option value="ncr">NCR – National Capital Region</option>
+                                            <option value="car">CAR – Cordillera Administrative Region</option>
+                                            <option value="barmm">BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                        </select>
+                                    </div><!--end of row-->
+                                </div><!--end of fifth row-->
+                            </div> <!--end of victim form-->
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <button class="btn btn-primary w-100" id="add-victim-form"><i class='bx bx-plus-circle'></i> Add Victim</button>
+                            </div>
+                            <div class="col">
+                                <button class="btn btn-primary w-100" id="delete-victim-form"><i class='bx bx-minus-circle'></i> Delete Victim</button>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end mt-4">
+                        <button class="btn btn-primary ml-auto js-btn-next" type="button" title="Next">Next</button>
+                        </div>
+                    </div>
+                </div>
+                <!--single form panel-->
+                <div class="multisteps-form__panel shadow p-4 rounded bg-white" data-animation="slideHorz">
+                    <div class="multisteps-form__content">
+                        <h1 class="text-center pt-3"><strong>Perpetrator Information</strong></h1>
+                        <div class="container-fluid scroll overflow-auto" style="max-height: 500px;">
+                            <div id="perpetrator-form_0">
+                                <div class="row"><!--First Row-->
+                                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-1 border-bottom border-3"></div>
+                                    <h5 id="perpetrator_counter">Perpetrator 1<span></span></h5>
+                                    <h5 class="pt-3"><strong>Name:</strong></h5>
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2"> <!--Firstname-->
+                                        <label for="perp-firstname_0" class="form-label">First name: </label>
+                                        <input type="text" class="form-control" id="perp-firstname_0" name="perp-firstname_0">
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2"> <!--middlename-->
+                                        <label for="perp-middlename_0" class="form-label">Middle name: </label>
+                                        <input type="text" class="form-control" id="perp-middlename_0" name="perp-middlename_0">
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2"> <!--lastname-->
+                                        <label for="perp-lastname_0" class="form-label">Last name: </label>
+                                        <input type="text" class="form-control" id="perp-lastname_0" name="perp-lastname_0">
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2"> <!--suffix-->
+                                        <label for="perp-Suffix_0" class="form-label">Suffix: </label>
+                                        <select id="perp-Suffix_0" name="perp-Suffix_0" class="form-select">
+                                            <option value="none">N/A</option>
+                                            <option value="sr">Sr</option>
+                                            <option value="jr">Jr</option>
+                                            <option value="ii">II</option>
+                                            <option value="iii">III</option>
+                                            <option value="iv">IV</option>
+                                        </select>
+                                    </div>
+                                </div><!--End of First row-->
+                                <div class="row pt-3"><!--Start of second row-->
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2"> <!--lastname-->
+                                        <label for="perp-alias_0" class="form-label">Alias: </label>
+                                        <input type="text" class="form-control" id="perp-alias_0" name="perp-alias_0">
+                                    </div><!--Ennd of col-->
+    
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2">
+                                        <label for="perp-sex_0" class="form-label">Sex: </label>
+                                        <select id="perp-sex_0" name="perp-sex_0" class="form-select">
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                        </select>
+                                    </div><!--End of col-->
+    
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2">
+                                        <label for="perp-date-of-birth_0" class="form-label">Date of Birth: </label>
+                                        <input type="date" class="form-control" id="perp-date-of-birth_0" name="perp-date-of-birth_0" value="0">
+                                    </div>
+    
+                                    <div class="col-lg-3 col-md-3 col-sm-8 pb-2">
+                                        <label for="perp-nationality_0" class="form-label">Nationality: </label>
+                                        <input type="text" class="form-control" id="perp-nationality_0" name="perp-nationality_0" placeholder="Filipino">
+                                    </div><!--end of col-->
+                            
+                                </div><!--End of second row-->
+                                <div class="row"><!--Start of third row-->
+                                    <div class="col-lg-12 col-md-12 col-sm-8 pb-2"> <!--lastname-->
+                                        <label for="perp-identifying-marks_0" class="form-label">Identifying Marks: </label>
+                                        <input type="text" class="form-control" id="perp-identifying-marks_0" name="perp-identifying-marks_0">
+                                    </div><!--End of col-->
+                                </div><!--End of third row-->
+                                <div class="row pt-3 pb-3"><!--Start of fourth row-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="perp-address-info_0" class="form-label">Unit no./House no./Building name: </label>
+                                        <input type="text" class="form-control" id="perp-address-info_0" name="perp-address-info_0">
+                                    </div><!--End of col-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="perp-street_0" class="form-label">Street: </label>
+                                        <input type="text" class="form-control" id="perp-street_0" name="perp-street_0">
+                                    </div><!--end of col-->
+    
+                                    <div class="col-lg-4 col-md-4 col-sm-8">
+                                        <label for="perp-barangay_0" class="form-label">Barangay: </label>
+                                        <input type="text" class="form-control" id="perp-barangay_0" name="perp-barangay_0">
+                                    </div><!--End of col-->
+                                </div><!--End of row-->
+                                <div class="row pt-3 pb-3"><!--Start of fifth row-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8">
+                                        <label for="perp-province_0" class="form-label">Province: </label>
+                                        <input type="text" class="form-control" id="perp-province_0" name="perp-province_0" placeholder="Zamboanga Del Sur">
+                                    </div><!--end of col-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8">
+                                        <label for="perp-city_0" class="form-label">City / Mun: </label>
+                                        <input type="text" class="form-control" id="perp-city_0" id="perp-city_0" placeholder="Zamboanga City">
+                                    </div><!--emd of col-->
+                                    <div class="col-lg-4 col-md-4 col-sm-8 pb-2">
+                                        <label for="perp-region_0" class="form-label">Region: </label>
+                                        <select id="perp-region_0" name="perp-region_0" class="form-select">
+                                            <option value="region-I">Region I – Ilocos Region</option>
+                                            <option value="region-II">Region II – Cagayan Valley</option>
+                                            <option value="region-III">Region III – Central Luzon</option>
+                                            <option value="region-IV">Region IV‑A – CALABARZON</option>
+                                            <option value="mimaropa">MIMAROPA Region</option>
+                                            <option value="region-V">Region V – Bicol Region</option>
+                                            <option value="region-VI">Region VI – Western Visayas</option>
+                                            <option value="region-VII">Region VII – Central Visayas</option>
+                                            <option value="region-VIII">Region VIII – Eastern Visayas</option>
+                                            <option value="region-IX" selected>Region IX – Zamboanga Peninsula</option>
+                                            <option value="region-X">Region X – Northern Mindanao</option>
+                                            <option value="region-XI">Region XI – Davao Region</option>
+                                            <option value="region-XII">Region XII – SOCCSKSARGEN</option>
+                                            <option value="region-XIII">Region XIII – Caraga</option>
+                                            <option value="ncr">NCR – National Capital Region</option>
+                                            <option value="car">CAR – Cordillera Administrative Region</option>
+                                            <option value="barmm">BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                        </select>
+                                    </div><!--end of col-->
+                                </div><!--end of fifth row-->
+                                <div class="row pt-3 pb-3"><!--Start of sixth row-->
+                                    <div class="col-lg-12 col-md-12 col-sm-8 pb-2">
+                                        <label for="perp-relationsip-victim_0" class="form-label">Relationship of Perpetrator to the Victim: </label>
+                                        <select id="perp-relationsip-victim_0" name="perp-relationsip-victim_0" class="form-select">
+                                            <option value="currentSpouse">Current spouse / partner</option>
+                                            <option value="formerSpouse">Former spouse / partner</option>
+                                            <option value="currentFiance">Current fiance / dating relationship</option>
+                                            <option value="formerFiance">Former fiance / dating relationship</option>
+                                            <option value="employer">Employer / manager / supervisor</option>
+                                            <option value="agentOfEmployer">Agent of Employer</option>
+                                            <option value="teacher">Teacher / instructor / professor</option>
+                                            <option value="coach">Coach / trainer</option>
+                                            <option value="immediate family">Immediate family</option>
+                                            <option value="otherRelatives">Other relatives</option>
+                                            <option value="peopleOfAuthority">People of authority / service provider</option>
+                                            <option value="neighbors">Neighbors / peers / coworkers / classmates</option>
+                                            <option value="Stranger">Stranger</option>
+                                        </select>
+                                    </div><!--end of row-->
+                                </div><!--end of sixth row -->
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <button class="btn btn-primary w-100" id="add-perpetrator-form" role="button"><i class='bx bx-plus-circle'></i> Add Perpetrator</button>
+                            </div>
+                            <div class="col">
+                                <button class="btn btn-primary w-100" id="delete-perpetrator-form" role="button"><i class='bx bx-minus-circle'></i> Delete Perpetrator</button>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                        <button class="btn btn-outline-primary js-btn-prev" type="button" title="Prev">Prev</button>
+                        <button class="btn btn-primary ml-auto js-btn-next" type="button" title="Next">Next</button>
+                        </div>
+                    </div>
+                </div>
+                <!--single form panel-->
+                <div class="multisteps-form__panel shadow p-4 rounded bg-white" data-animation="slideHorz">
+                    <div class="multisteps-form__content">
+                            <h1 class="text-center pt-3"><strong>Incident Information</strong></h1>
+
+                            <div class="row pt-5 pb-3">
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+                                    <label for="date-latest-incident" class="form-label"><strong>Date of Latest Incident: </strong></label>
+                                </div><!--end of col-->
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+                                    <input type="date" class="form-control" name="date-latest-incident" id="date-latest-incident" value="">
+                                </div><!--emd of col-->
+                                <div class="col-lg-4 col-md-4 col-sm-12 pt-2">
+                                    <div class="form-check">
+                                        <input type="hidden" name="incomplete-date" value="False"> <!-- Hidden input with value False -->
+                                        <input class="form-check-input" type="checkbox" id="incomplete-date" name="incomplete-date" value="True"> <!-- Checkbox input with value True -->
+                                        <label class="form-check-label" for="incomplete-date">
+                                            Incomplete Date
+                                        </label>
+                                    </div>
+                                </div><!--emd of col-->
+                            </div><!--end of row-->
+
+                            <div class="row pt-3 pb-3">
+                                <h5 class="pb-3"><strong>Place of Incident</strong></h5>
+                                <div class="col-lg-4 col-md-4 col-sm-12 pb-2">
+                                    <label for="place-incident" class="form-label">Type of Place of incident: </label>
+                                    <select id="place-incident" name="place-incident" class="form-select">
+                                        <option selected>---Select Place of Incident---</option>
+                                        <option value="house">House</option>
+                                        <option value="work">Work</option>
+                                        <option value="school">School</option>
+                                        <option value="commercialPlaces">Commercial Places</option>
+                                        <option value="religion">Religious Institutions</option>
+                                        <option value="placeOfMedicalTreatment">Place of Medical Treatment</option>
+                                        <option value="transport">Transport & Connecting Sites</option>
+                                        <option value="brothles">Brothels and Similar Establishments</option>
+                                        <option value="others">Others</option>
+                                        <option value="noResponse">No Response</option>
+                                    </select>
+                                </div><!--end of col-->
+
+                                <div class="col-lg-4 col-md-4 col-sm-12 pb-2">
+                                    <label for="incident-street" class="form-label">Street: </label>
+                                    <input type="text" class="form-control" id="incident-street" name="incident-street">
+                                </div><!--end of col-->
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+                                    <label for="incident-barangay" class="form-label">Barangay: </label>
+                                    <input type="text" class="form-control" name="incident-barangay" id="incident-barangay">
+                                </div><!--End of col-->
+                            </div><!--end of row-->
+
+                            <div class="row pt-3 pb-3">
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+                                    <label for="incident-province" class="form-label">Province: </label>
+                                    <input type="text" class="form-control" name="incident-province" id="incident-province" placeholder="Zamboanga Del Sur">
+                                </div><!--end of col-->
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+                                    <label for="incident-city" class="form-label">City / Mun: </label>
+                                    <input type="text" class="form-control" name="incident-city" id="incident-city" placeholder="Zamboanga City">
+                                </div><!--emd of col-->
+                                <div class="col-lg-4 col-md-4 col-sm-12 pb-2">
+                                    <label for="incident-region" class="form-label">Region: </label>
+                                    <select id="incident-region" name="incident-region" class="form-select">
+                                        <option value="region-I">Region I – Ilocos Region</option>
+                                        <option value="region-II">Region II – Cagayan Valley</option>
+                                        <option value="region-III">Region III – Central Luzon</option>
+                                        <option value="region-IV">Region IV‑A – CALABARZON</option>
+                                        <option value="mimaropa">MIMAROPA Region</option>
+                                        <option value="region-V">Region V – Bicol Region</option>
+                                        <option value="region-VI">Region VI – Western Visayas</option>
+                                        <option value="region-VII">Region VII – Central Visayas</option>
+                                        <option value="region-VIII">Region VIII – Eastern Visayas</option>
+                                        <option value="region-IX" selected>Region IX – Zamboanga Peninsula</option>
+                                        <option value="region-X">Region X – Northern Mindanao</option>
+                                        <option value="region-XI">Region XI – Davao Region</option>
+                                        <option value="region-XII">Region XII – SOCCSKSARGEN</option>
+                                        <option value="region-XIII">Region XIII – Caraga</option>
+                                        <option value="ncr">NCR – National Capital Region</option>
+                                        <option value="car">CAR – Cordillera Administrative Region</option>
+                                        <option value="barmm">BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                    </select>
+                                </div><!--end of col-->
+                            </div><!--end of row-->
+
+                            <div class="row pt-3 pb-3">
+                                <div class="mb-3">
+                                    <label for="incident-desc" class="form-label"><strong>Description of Incident:</strong></label>
+                                    <textarea class="form-control" name="incident-desc" id="incident-desc" rows="3"></textarea>
+                                </div><!--for textbox-->
+                            </div><!--End or row-->
+
+                            <div class="row pt-3">
+                                <div class="mb-3">
+                                    <label for="incident-evidence" class="form-label"><strong>Upload Evidences:</strong></label>
+                                    <input class="form-control" type="file" id="incident-evidence" name="evidence_file" multiple>
+                                </div><!--form to upload-->
+                            </div><!--End or row-->
+                        <div class="row">
+                            <div class="d-flex justify-content-between mt-4 col-12">
+                                <button class="btn btn-outline-primary js-btn-prev" type="button" title="Prev">Prev</button>
+                                <button class="btn btn-primary ml-auto js-btn-next" type="button" title="Next">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--single form panel-->
+                <div class="multisteps-form__panel shadow p-4 rounded bg-white" data-animation="slideHorz">
+                    <div class="multisteps-form__content">
+                        <h1 class="text-center pt-3"><strong>Contact Person Information</strong></h1>
+                        <div class="row pt-5">
+                            <div class="col-lg-3 col-md-3 col-sm-12 pb-2">
+                                <label for="contact-firstname" class="form-label">First Name: </label>
+                                <input type="text" class="form-control" id="contact-firstname" name="contact-firstname">
+                            </div><!--end of col-->
+                            <div class="col-lg-3 col-md-3 col-sm-12 pb-2">
+                                <label for="contact-midname" class="form-label">Middle Name: </label>
+                                <input type="text" class="form-control" id="contact-midname" name="contact-midname">
+                            </div><!--end of col-->
+                            <div class="col-lg-3 col-md-3 col-sm-12 pb-2">
+                                <label for="contact-lastname" class="form-label">Last Name: </label>
+                                <input type="text" class="form-control" id="contact-lastname" name="contact-lastname">
+                            </div><!--end of col-->
+                            <div class="col-lg-3 col-md-3 col-sm-12 pb-2">
+                                <label for="contact-Suffix" class="form-label">Suffix: </label>
+                                <select id="contact-Suffix" name="contact-Suffix" class="form-select">
+                                    <option value="none">N/A</option>
+                                    <option value="sr">Sr</option>
+                                    <option value="jr">Jr</option>
+                                    <option value="ii">II</option>
+                                    <option value="iii">III</option>
+                                    <option value="iv">IV</option>
+                                </select>
+                            </div><!--end of col-->
+                        </div><!--End of row-->
+
+                        <div class="row pt-2">
+                            <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                                <label for="relationship" class="form-label">Relationship to the Victim: </label>
+                                <input type="text" class="form-control" id="relationship" name="relationship">
+                            </div><!--end of col-->
+                            <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                                <label for="contact-number" class="form-label">Contact No.: </label>
+                                <input type="number" class="form-control" id="contact-number" name="contact-number" value="0">
+                            </div><!--end of col-->
+                            <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                                <label for="contact-tel" class="form-label">Telephone No.: </label>
+                                <input type="text" class="form-control" id="contact-tel" name="contact-tel" value="0">
+                            </div><!--end of col-->
+                            <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                                <label for="contact-street" class="form-label">Street: </label>
+                                <input type="text" class="form-control" id="contact-street" name="contact-street">
+                            </div><!--end of col-->
+                            
+                        </div><!--end of row-->
+                    
+                        <div class="row pt-2 pb-3">
+                            <div class="col-lg-2 col-md-4 col-sm-12 pb-2">
+                                <label for="contact-barangay" class="form-label">Barangay: </label>
+                                <input type="text" class="form-control" id="contact-barangay" name="contact-barangay">
+                            </div><!--end of col-->
+                            <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                                <label for="contact-city" class="form-label">City: </label>
+                                <input type="text" class="form-control" id="contact-city" name="contact-city" placeholder="Zamboanga City">
+                            </div><!--end of col-->
+                            <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                                <label for="contact-province" class="form-label">Province: </label>
+                                <input type="text" class="form-control" id="contact-province" name="contact-province" placeholder="Zamboanga Del Sur">
+                            </div><!--end of col-->
+                            <div class="col-lg-4 col-md-4 col-sm-12 pb-2">
+                                <label for="contact-region" class="form-label">Region: </label>
+                                <select id="contact-region" name="contact-region" class="form-select">
+                                    <option value="region-I">Region I – Ilocos Region</option>
+                                    <option value="region-II">Region II – Cagayan Valley</option>
+                                    <option value="region-III">Region III – Central Luzon</option>
+                                    <option value="region-IV">Region IV‑A – CALABARZON</option>
+                                    <option value="mimaropa">MIMAROPA Region</option>
+                                    <option value="region-V">Region V – Bicol Region</option>
+                                    <option value="region-VI">Region VI – Western Visayas</option>
+                                    <option value="region-VII">Region VII – Central Visayas</option>
+                                    <option value="region-VIII">Region VIII – Eastern Visayas</option>
+                                    <option value="region-IX" selected>Region IX – Zamboanga Peninsula</option>
+                                    <option value="region-X">Region X – Northern Mindanao</option>
+                                    <option value="region-XI">Region XI – Davao Region</option>
+                                    <option value="region-XII">Region XII – SOCCSKSARGEN</option>
+                                    <option value="region-XIII">Region XIII – Caraga</option>
+                                    <option value="ncr">NCR – National Capital Region</option>
+                                    <option value="car">CAR – Cordillera Administrative Region</option>
+                                    <option value="barmm">BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                </select>
+                            </div><!--end of col-->
+                            
+                        </div><!--end of row-->
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button class="btn btn-outline-primary js-btn-prev" type="button" title="Prev">Prev</button>
+                            <button class="btn btn-primary ml-auto js-btn-next" type="button" title="Next">Next</button>
+                        </div>
+                    </div>
+                </div>
+                <!--single form panel-->
+                <div class="multisteps-form__panel shadow p-4 rounded bg-white" data-animation="slideHorz">
+                    <div class="multisteps-form__content">
+                        <h1 class="text-center pt-3"><strong>Service Information</strong></h1>
+                            <div class="label-form row pt-5 pb-3">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="service" id="crisis" value="crisis" autocomplete="off" checked>
+                                    <label class="btn custom-btn" for="crisis">Crisis Intervention Including Rescue</label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="service" id="issuance" value="issuance" autocomplete="off">
+                                    <label class="btn custom-btn" for="issuance">Issuance / Enforcement of Barangay Protection Order</label>
+                                </div>
+                            </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button class="btn btn-outline-primary js-btn-prev" type="button" title="Prev">Prev</button>
+                            <button class="btn btn-primary ml-auto" type="submit" title="Send">Submit</button>
+                        </div>
+                    </div>
+                </div>
+          </form>
+        </div>
+      </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="staticBackdropLabel">Success</h1>
+        </div>
+        <div class="modal-body">
+            <div class="wrapper"> <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"> <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/> <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+            </div>
+            <h3 class="text-center">Success</h3>
+            <p class="py-1 fs-4 text-center">Thank you for reporting! Your report will help us maintain a safe and enjoyable environment for everyone. We'll review the issue promptly. If necessary, we'll take appropriate action. Your contribution is appreciate!</p>
+        </div>
+        <div class="modal-footer">
+            <a type="button" class="btn btn-primary" href="{% url 'home' %}">Back to HomePage</a>
+        </div>
+        </div>
+    </div>
+</div>
+<!-- Add the toast container to your HTML, make sure it's placed in a suitable location -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header text-dark" style="background-color:#899499;">
+            <img src="{% static 'img/ecs-no-bg-2.png' %}" class="rounded me-2" alt="..." style="width:20px;">
+            <strong class="me-auto text-dark">Error</strong>
+            <small>Just Now</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-dark">
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+{% block scripts %}
+<script src="{% static 'js/multi-form.js' %}"></script>
+<script src="{% static 'js/dynamic_forms.js' %}"></script>
+<script>
+    function showToast(type, message) {
+        var toastId = type === 'success' ? '#successToast' : '#errorToast';
+        var toast = new bootstrap.Toast(document.querySelector(toastId));
+        // Update toast message
+        var toastBody = toastId + ' .toast-body';
+        $(toastBody).text(message);
+        // Show toast
+        toast.show();
+    }
+    
+    $(document).ready(function() {
+        // Intercept the form submission
+        $('#impact-victim-form').submit(function(e) {
+            e.preventDefault(); // Prevent the default form submission
+    
+            // Perform an AJAX request
+            var formData = new FormData(this); // Create FormData object from the form
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr('action'), // Get the form's action attribute
+                data: formData, // Use FormData object for file uploads
+                contentType: false, // Prevent jQuery from automatically setting contentType
+                processData: false, // Prevent jQuery from automatically processing data
+                dataType: 'json', // Expect JSON response
+                success: function(response) {
+                    if (response.success) {
+                        $('#staticBackdrop').modal('show'); // Show the success modal
+                    } else {
+                        // Show error toast if response indicates failure
+                        showToast('error', 'An error occurred. Please try again.');
+                    }
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    console.error('Error:', errorThrown);
+                    // Show error toast if response indicates failure
+                    showToast('error', 'An error occurred. Please try again.');
+                }
+            });
+        });
+
+        // Prevent form submission when clicking the buttons inside the form
+        $('#add-victim-form, #delete-victim-form, #add-perpetrator-form, #delete-perpetrator-form').click(function(e) {
+            e.preventDefault(); // Prevent the default action
+        });
+
+        // Get the current date
+        var currentDate = new Date();
+
+        // Format the date as YYYY-MM-DD for the input field
+        var formattedDate = currentDate.toISOString().split('T')[0];
+
+        // Set the value of the input field to the current date
+        $('#date-latest-incident').val(formattedDate);
+    });
+</script>
+{% endblock scripts %}

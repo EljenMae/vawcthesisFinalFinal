@@ -1,0 +1,13 @@
+.sidebar-nav .sidebar-item .sidebar-link.active {
+    background-color: #8545c1 !important;
+}
+
+.sidebar-nav .sidebar-item.selected .sidebar-link.active {
+    background-color: #8545c1 !important;
+}
+
+.sidebar-nav .sidebar-item .sidebar-link:hover {
+    background-color: #d0b6e7 !important;
+    color: #9a71c1  !important;
+    /* Add any additional styles for the hover effect */
+}

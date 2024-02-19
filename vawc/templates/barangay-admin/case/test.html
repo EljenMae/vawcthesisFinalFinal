@@ -1,0 +1,245 @@
+<!-- Modal -->
+<div class="modal fade" id="addPerpModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Add Perpetrator</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="add_new_perpetrator_form">
+            {% csrf_token %}
+            <div class="modal-body">
+                <input type="hidden" name="case_id" value="{{ case.id }}">
+                <div class="h-100">
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_first_name" name="perpetrator_first_name">
+                                <label for="perpetrator_first_name">First Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_middle_name" name="perpetrator_middle_name">
+                                <label for="perpetrator_middle_name">Middle Name</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_last_name" name="perpetrator_last_name">
+                                <label for="perpetrator_last_name">Last Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_suffix_name" name="perpetrator_suffix_name">
+                                    <option value="none">N/A</option>
+                                    <option value="sr">Sr</option>
+                                    <option value="jr">Jr</option>
+                                    <option value="ii">II</option>
+                                    <option value="iii">III</option>
+                                    <option value="iv">IV</option>
+                                </select>
+                                <label for="perpetrator_suffix_name">Suffix</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_identifying_marks" name="perpetrator_identifying_marks">
+                                <label for="perpetrator_identifying_marks">Identifying Marks</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_alias" name="perpetrator_alias">
+                                <label for="perpetrator_alias">Alias</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-12 mb-3">
+                            <div class="form-floating">
+                                <select id="perp-relationship-victim" name="perp-relationship-victim" class="form-select">
+                                    <option value="currentSpouse">Current spouse / partner</option>
+                                    <option value="formerSpouse">Former spouse / partner</option>
+                                    <option value="currentFiance">Current fiance / dating relationship</option>
+                                    <option value="formerFiance">Former fiance / dating relationship</option>
+                                    <option value="employer">Employer / manager / supervisor</option>
+                                    <option value="agentOfEmployer">Agent of Employer</option>
+                                    <option value="teacher">Teacher / instructor / professor</option>
+                                    <option value="coach">Coach / trainer</option>
+                                    <option value="immediateFamily">Immediate family</option>
+                                    <option value="otherRelatives">Other relatives</option>
+                                    <option value="peopleOfAuthority">People of authority / service provider</option>
+                                    <option value="neighbors">Neighbors / peers / coworkers / classmates</option>
+                                    <option value="stranger" selected>Stranger</option>
+                                </select>
+                                <label for="perp-relationship-victim" class="form-label">Relationship of Perpetrator to the Victim: </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_sex" name="perpetrator_sex">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                                <label for="perpetrator_sex">Suffix</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_type_of_disability" name="perpetrator_type_of_disability">
+                                    <option value="none">N/A</option>
+                                    <option value="With Disability">With Disability</option>
+                                    <option value="Permanent Disability">Permanent Disability</option>
+                                    <option value="Temporary Disability">Temporary Disability</option>
+                                </select>
+                                <label for="perpetrator_type_of_disability">Type of Disability</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="perpetrator_date_of_birth" name="perpetrator_date_of_birth">
+                                <label for="perpetrator_date_of_birth">Date of Birth: </label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_civil_status" name="perpetrator_civil_status">
+                                    <option value="single">Single</option>
+                                    <option value="married">Married</option>
+                                    <option value="live-in">Live-In</option>
+                                    <option value="widowed">Widowed</option>
+                                    <option value="separated">Separated</option>
+                                </select>
+                                <label for="perpetrator_civil_status">Civil Status</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-6 col-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="perpetrator_contact_number" name="perpetrator_contact_number">
+                                <label for="perpetrator_contact_number">Contact Number</label>
+                            </div>
+                        </div><!--End of col-->
+                        
+                        <div class="col-lg-6 col-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="perpetrator_telephone_number" name="perpetrator_telephone_number">
+                                <label for="perpetrator_telephone_number">Telephone Number</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_educational_attainment" name="perpetrator_educational_attainment">
+                                    <option value="none">None</option>
+                                    <option value="highschool">High School Level</option>
+                                    <option value="vocational">Vocational</option>
+                                    <option value="collegeLevel">College Level</option>
+                                    <option value="post-grad">Post Graduated</option>
+                                    <option value="no-response">No Response</option>
+                                    <option value="educt-others">Others</option>
+                                </select>
+                                <label for="perpetrator_educational_attainment">Highest Educational Attainment</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_occupation" name="perpetrator_occupation">
+                                <label for="perpetrator_occupation">Occupation</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_nationality" name="perpetrator_nationality">
+                                <label for="perpetrator_nationality">Nationality</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_religion" name="perpetrator_religion">
+                                    <option value="none">None</option>
+                                    <option value="roman-catholic">Roman Catholic</option>
+                                    <option value="islam">Islam</option>
+                                    <option value="protestant">Protestant</option>
+                                    <option value="iglesia-ni-kristo">Iglesia ni Kristo</option>
+                                    <option value="aglipayan">Aglipayan</option>
+                                    <option value="other-religion">Others</option>
+                                </select>
+                                <label for="perpetrator_religion">Religion</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-6 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="perpetrator_house_information" name="perpetrator_house_information">
+                                <label for="perpetrator_house_information">House Information</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="perpetrator_street" name="perpetrator_street">
+                                <label for="perpetrator_street">Street</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="perpetrator_barangay" name="perpetrator_barangay">
+                                <label for="perpetrator_barangay">Barangay</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_province" name="perpetrator_province">
+                                <label for="perpetrator_province">Province</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-12">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="perpetrator_city" name="perpetrator_city">
+                                <label for="perpetrator_city">City</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-6 col-12">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_region" name="perpetrator_region">
+                                    <option value="region-I">Region I – Ilocos Region</option>
+                                    <option value="region-II">Region II – Cagayan Valley</option>
+                                    <option value="region-III">Region III – Central Luzon</option>
+                                    <option value="region-IV">Region IV‑A – CALABARZON</option>
+                                    <option value="mimaropa">MIMAROPA Region</option>
+                                    <option value="region-V">Region V – Bicol Region</option>
+                                    <option value="region-VI">Region VI – Western Visayas</option>
+                                    <option value="region-VII">Region VII – Central Visayas</option>
+                                    <option value="region-VIII">Region VIII – Eastern Visayas</option>
+                                    <option value="region-IX">Region IX – Zamboanga Peninsula</option>
+                                    <option value="region-X">Region X – Northern Mindanao</option>
+                                    <option value="region-XI">Region XI – Davao Region</option>
+                                    <option value="region-XII">Region XII – SOCCSKSARGEN</option>
+                                    <option value="region-XIII">Region XIII – Caraga</option>
+                                    <option value="ncr">NCR – National Capital Region</option>
+                                    <option value="car">CAR – Cordillera Administrative Region</option>
+                                    <option value="barmm">BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                </select>
+                                <label for="perpetrator_region">Region</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button class="btn btn-primary add-btn-perpetrator" type="submit">Add</button>
+            </div>
+        </form>
+      </div>
+    </div>
+</div>

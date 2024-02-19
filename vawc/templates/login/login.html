@@ -1,0 +1,219 @@
+{% extends "../base/base.html" %}
+{% block title %}Login{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container pt-5 pb-5">
+    <div class="card">
+        <div class="card-body">
+            <a href="{% url 'home' %}"><button type="button" class="btn-close d-flex ms-auto" aria-label="Close"></button></a>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-8 pt-5">
+                    <img src= "{% static '/img/login.png' %}" class="img-fluid" alt="image">
+                </div>
+            <div class="col-lg-6 col-md-6 col-sm-8 pt-5">
+                <h2 class="text-center pt-3 pb-3">Log In</h2>
+                    <form id="loginForm" method="post">
+                        {% csrf_token %}
+                        <div class="row pb-2">
+                            <div class="col-lg-12 col-md-12 col-sm-8 pt-2">
+                                <label for="barangay-email" class="form-label">Email: </label>
+                                <input type="email" class="form-control" id="barangay-email" name="barangay-email" aria-describedby="barangay-emailFeedback">
+                                <div id="barangay-emailFeedback" class="invalid-feedback">
+                                    Account not found.
+                                </div>
+                                <!--invalid feedback-->
+                            </div>
+                        </div><!--First row-->
+                        <div class="row pb-2">
+                            <div class="col-lg-12 col-md-12 col-sm-8 pt-2">
+                                <label for="barangay-passkey" class="form-label">Passkey: </label>
+                                <input type="password" class="form-control" id="barangay-passkey" name="barangay-passkey" aria-describedby="barangay-passkeyFeedback">
+                                <div id="barangay-passkeyFeedback" class="invalid-feedback">
+                                    Your Passkey is invalid. Please try again.
+                                </div>
+                                <!--invalid feedback-->
+                            </div>
+                        </div><!--third row-->
+                        <div class="col-12 col-md-12 col-sm-8 pt-3 pt-2">
+                            <button id="submitButton" class="btn btn-primary w-100" type="submit">Log In</button>
+                            </button>
+                            <p class="pt-2 text-center"><a href="#">Forgot your Password?</a> Let's get you back in.</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+      </div>
+    </div>
+</div>
+<!-- OTP Modal -->
+<div class="modal fade" id="otpModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="otpModalToggleLabel">One-Time Password Verification</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-center">Please enter the one-time password to verify your account</h6>
+                <div class="text-center mt-3">
+                    <span>A code has been sent to</span>
+                    <small id="hidden_email">*****gmail.com</small>
+                </div>
+                <form id="otpForm" method="post">
+                    {% csrf_token %}
+                    <div id="otp" class="inputs d-flex justify-content-center mt-4">
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_1" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_2" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_3" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_4" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_5" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_6" maxlength="1" />
+                    </div>
+                    <div class="text-center mt-4">
+                        <button class="btn btn-primary px-4" type="submit">Validate</button>
+                    </div>
+                    <div class="text-center mt-3 text-danger" style="display: none;">
+                        <i class='bx bx-error-circle'></i>
+                        <span id="otpErrorMessage"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="content d-flex justify-content-center align-items-center">
+                    <span id="resendText">Didn't get the code</span>
+                    <a href="#" id="resendButton" class="text-decoration-none ms-3">Resend</a>
+                    <span id="resendTimer" class="text-decoration-none ms-3"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+{% block scripts %}
+<script>
+    // JavaScript for login_with_otp.html
+    $(document).ready(function() {
+        $('#loginForm').submit(function(event) {
+            event.preventDefault();
+            var formData = $(this).serialize();
+            $.ajax({
+                type: 'POST',
+                url: '{% url "login_with_otp" %}',
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        $('#barangay-email').removeClass('is-invalid');
+                        $('#barangay-passkey').removeClass('is-invalid');
+                        $('#successMessage').text(response.message);
+                        console.log(response.message);
+                        // Redirect or perform other actions after successful login
+                        $('#otpModal').modal('show'); // Show the OTP modal after successful login
+                    } else {
+                        console.log(response.message);
+                        if (response.message === 'Account not found.') {
+                            $('#barangay-email').addClass('is-invalid'); // Add is-invalid class for email input
+                            $('#barangay-email').val(''); // Clear the email input field
+                            $('#barangay-emailFeedback').text(response.message); // Update feedback message
+                        } else if (response.message === 'Invalid passkey. Please try again.') {
+                            $('#barangay-passkey').addClass('is-invalid'); // Add is-invalid class for passkey input
+                            $('#barangay-passkey').val(''); // Clear the passkey input field
+                            $('#barangay-passkeyFeedback').text(response.message); // Update feedback message
+                        }
+                        $('#errorMessage').text(response.message);
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    $('#errorMessage').text('Error occurred. Please try again.');
+                }
+            });
+        });
+
+        $('#otpForm').submit(function(event) {
+            event.preventDefault();
+            var formData = $(this).serialize();
+            $.ajax({
+                type: 'POST',
+                url: '{% url "verify_otp" %}',
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        $('#successMessage').text(response.message);
+
+                        // Redirect based on account type
+                        if (response.account_type === 'admin') {
+                            // Redirect to admin dashboard
+                            window.location.href = '{% url "admin dashboard" %}';
+                        } else if (response.account_type === 'staff') {
+                            // Redirect to staff dashboard
+                            window.location.href = '{% url "barangay dashboard" %}';
+                        }
+
+                        // Log success message to the console
+                        console.log('OTP verification successful.');
+                    } else {
+                        $('#otpErrorMessage').text(response.message);
+                        if (response.message === 'Code is already expired.' || response.message === 'OTP Inputted is not Correct.') {
+                            $('.text-danger').show(); // Show the error message div
+                        }
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    $('#otpErrorMessage').text('Error occurred. Please try again.');
+                    // Log error message to the console
+                    console.error('Error occurred during OTP verification:', errmsg);
+                }
+            });
+        });
+        // Function to update the countdown timer
+        function updateTimer(seconds) {
+            $('#resendTimer').text(`Resend ${seconds}s`);
+        }
+
+        // Function to handle the resend action
+        function resendOTP() {
+            // Disable the resend button
+            $('#resendButton').prop('disabled', true);
+            // Hide the resend button
+            $('#resendButton').hide();
+
+            // Set the initial timer value
+            let secondsRemaining = 30;
+            updateTimer(secondsRemaining);
+
+            // Start the countdown
+            const timerInterval = setInterval(() => {
+                secondsRemaining--;
+                updateTimer(secondsRemaining);
+                if (secondsRemaining === 0) {
+                    // Enable the resend button and clear the timer
+                    clearInterval(timerInterval);
+                    $('#resendButton').prop('disabled', false);
+                    $('#resendButton').show(); // Show the resend button
+                    $('#resendTimer').text('');
+                }
+            }, 1000);
+
+            // Send AJAX request to resend OTP
+            $.ajax({
+                type: 'POST',
+                url: '{% url "resend_otp" %}',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }, // Include CSRF token in the headers
+                success: function(response) {
+                    // Handle success response if needed
+                },
+                error: function(xhr, errmsg, err) {
+                    console.error('Error occurred during OTP resend:', errmsg);
+                }
+            });
+        }
+
+        // Click event handler for the resend button
+        $('#resendButton').click(function(event) {
+            event.preventDefault();
+            resendOTP();
+        });
+    });
+
+</script>
+{% endblock scripts %}

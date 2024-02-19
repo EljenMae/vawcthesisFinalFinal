@@ -1,0 +1,88 @@
+{% extends "../base/base.html" %}
+{% block title %}Homepage{% endblock %}
+{% load static %}
+{% block content %}
+<!--Section for head-->
+<div class="container pt-5 pb-5">
+    <div class="row pt-5">
+        <!--Text-->
+        <div class="col-lg-6 col-md-6 col-sm-8">
+            <h5>Empower. Protect. Advocate.</h5>
+            <div class="text pt-2">
+                <h2>Join Us in Breaking the Cycle of Abuse. Together, We Can Make a Difference.</h2>
+            </div>
+            <div class="pt-2 pb-2">
+                <h5>Creating a Safe Haven for Women and Children</h5>
+            </div>
+            <div class="pt-2">
+                <p>We stand firm in our commitment to eradicate violence against women and children. Every individual deserves to live a life free from fear and abuse. Our mission is to empower survivors, protect the vulnerable, and advocate for a world where violence has no place.</p>
+            </div>
+            <div class="buttons text-lg-start text-center">
+                <a class="btn btn-primary my-3" href="{% url 'impact victim' %}" role="button">I'm the Victim</a>
+                <a class="btn btn-outline-primary" href="{% url 'behalf impact victim' %}" role="button">Behalf of Victim</a>
+            </div>
+        </div><!--end of col-->
+        <!--Image-->
+        <div class="col-lg-6 col-md-6 col-sm-8">
+            <img src= "{% static '/img/03.png' %}" class="img-fluid" alt="image">
+        </div><!--end of col-->
+    </div><!--end of row-->
+
+</div>
+
+     <!--Section for Mission and vision-->
+     <div class="container pt-4 pb-5">
+        <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-8 pb-3">
+                    <h1 class="text-center pb-2 fw-bold">Vision</h1>
+                    <div class="card pt-3 pb-3">
+                        <div class="card-body text-center">
+                            To be the premier policy-making and oversight agency successfully influencing development efforts towards gender equality and the empowerment of all women and girls.
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-8 pb-3">
+                    <h1 class="text-center pb-2 fw-bold">Mission</h1>
+                    <div class="card pt-3 pb-3">
+                        <div class="card-body text-center">
+                            Create an enabling environment for government and other stakeholders to be more responsive in achieving gender equality and the empowerment of all women and girls.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+     </div>
+
+     <!--End Section for Mission and vision-->
+
+     <!--Section for PCW mandates and functions-->
+     <div class="container pt-4 pb-5">
+        <h1 class="text-center pt-2 pb-2 fw-bold">PCW Mandates and Functions</h3>
+        <div class="card">
+            <div class="container">
+            <div class="card-body">Major functions:</div>
+            <ul>
+                <li>Institute the gender responsiveness of national development plans and coordinate the preparation, assessment, and updating of the National Plan for Women, ensure its implementation and monitor the performance of government agencies in the implementation of the Plan at all levels.</li>
+                <li>Undertake continuing advocacy to promote economic, social and political empowerment of women and provide technical assistance in the setting up and strengthening of mechanisms on gender mainstreaming.</li>
+                <li>Ensure that the gains achieved by Filipino women due to Philippine culture and tradition shall be preserved and enhanced in the process of modernization.</li>
+              </ul>
+            </div>
+            <div class="container">
+                <div class="card-body">More specifically, the PCW:</div>
+                <ul>
+                    <li>Coordinates the preparation of Philippine development plans for women as well as their monitoring assessment and updating in cooperation with the national planning body and line agencies.</li>
+                    <li>Acts as a clearing house and database for information relating to women.</li>
+                    <li>Conducts gender-consciousness-raising programs.</li>
+                    <li>Conducts policy studies and reviews legislation to integrate women’s concerns.</li>
+                    <li>Provides technical services and ensures the development of institutional capabilities for gender and development (GAD) mainstreaming of government agencies and selected partners.</li>
+                    <li>Monitors and assesses the implementation of laws and policies on women including the implementation of international conventions such as the Beijing Platform for Action.</li>
+                    <li>Implements pilot projects for the delivery of services for women as the basis for policy formulation and program recommendations.</li>
+                </ul>
+                </div>
+            </div>
+          </div>
+    </div>
+    <!--End Section for PCW mandates and functions-->
+{% endblock content %}
+{% block scripts %}
+{% endblock scripts %}

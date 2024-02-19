@@ -1,0 +1,10 @@
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+newdjangoenv/Scripts/activate
+cd vawc
+python manage.py runserver
+
+python manage.py makemigrations
+python manage.py migrate
+
+test_acc@gmail.com
+Password_565

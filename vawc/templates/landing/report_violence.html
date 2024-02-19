@@ -1,0 +1,26 @@
+{% extends "../base/base.html" %}
+{% block title %}Report Violence{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container pt-5 pb-5">
+    <div class="card pt-3">
+        <div class="card-body">
+        <h1 class="text-center pt-5"><strong>File a VAWC Report</strong></h1>
+
+        <h1 class="text-center pt-5 pb-3"><strong>I am:</strong></h1>
+
+        <div class="row pt-3 pb-3">
+            <div class="col-lg-6 col-md-6 col-sm-8 pb-3">
+            <a class="btn btn-outline-primary w-100" href="{% url 'impact victim' %}" role="button">The Impacted Victim</a>
+            </div><!--end of column-->
+            <div class="col-lg-6 col-md-6 col-sm-8 pb-3">
+            <a class="btn btn-outline-primary w-100" href="{% url 'behalf impact victim' %}" role="button">Reporting on Behalf of Impacted Victim</a>
+            </div><!--end of column-->
+        </div><!--end of row-->
+
+        </div><!--end of card body-->
+    </div><!--end of card-->
+</div><!--end of container-->
+{% endblock content %}
+{% block scripts %}
+{% endblock scripts %}

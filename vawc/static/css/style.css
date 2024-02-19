@@ -1,0 +1,183 @@
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+.custom-tab.active {
+    background: transparent !important;
+    color: black !important;
+    border-bottom: 2px solid #6717b2 !important;
+    border-radius: 0px !important;
+}
+
+.custom-nav-link{
+    color: black !important;
+}
+
+/* Custom CSS for the active state of custom-nav-link */
+.custom-nav-link.active, .custom-nav-link:focus{
+    background-color: #6717b2  !important;
+    color: white  !important;
+}
+
+.custom-nav-link:hover {
+    background-color: #d0b6e7 !important;
+    color: #9a71c1  !important; /* Change the background color for active, focus, and hover states */
+}
+
+.btn-danger {
+    background-color: #D22B2B !important;
+    border-color: #D22B2B !important;
+}
+
+.btn-danger:hover {
+    background-color: #a31414  !important;
+    border-color: #a31414 !important;
+}
+
+.btn-secondary {
+    background-color: #A9A9A9 !important;
+    border-color: #A9A9A9 !important;
+}
+
+.btn-secondary:hover {
+    background-color: #818589 !important;
+    border-color: #818589 !important;
+}
+
+.custom-btn {
+    width: 100%;
+}
+.cust-outline-btn {
+    border-color: transparent !important; /* Set border color to transparent */
+}
+
+.cust-outline-btn:focus,
+.cust-outline-btn:active {
+    outline: none; /* Remove outline on focus and active states */
+    border-color: transparent !important;
+}
+
+/* Unchecked state */
+.custom-btn input[type="radio"].btn-check:not(:checked) + .btn {
+    background-color: #8a2be2; /* Change to desired color */
+}
+
+/* Checked state */
+.custom-btn input[type="radio"].btn-check:checked + .btn {
+    background-color: #6717b2; /* Custom color when selected */
+    border-color: #6717b2; /* Border color when selected */
+}
+
+.wrapper {
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffff;
+}
+
+.checkmark__circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    stroke: #7ac142;
+    fill: none;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: block;
+    stroke-width: 2;
+    stroke: #fff;
+    stroke-miterlimit: 10;
+    margin: 10% auto;
+    box-shadow: inset 0px 0px 0px #7ac142;
+    animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+}
+
+.checkmark__check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes scale {
+    0%, 100% {
+        transform: none;
+    }
+    50% {
+        transform: scale3d(1.1, 1.1, 1);
+    }
+}
+
+@keyframes fill {
+    100% {
+        box-shadow: inset 0px 0px 0px 30px #7ac142;
+    }
+}
+
+
+
+.cust-bg {
+    background-color: blueviolet;
+}
+.btn-primary {
+    background-color: #8a2be2 !important;
+    border-color: #8a2be2 !important;
+}
+
+.btn-primary:hover {
+    background-color: #6717b2  !important;
+    border-color: #6717b2  !important;
+}
+
+.btn-outline-primary {
+    background-color: transparent !important;
+    color: #6717b2 !important;
+    border-color: #8a2be2 !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #6717b2  !important;
+    border-color: #6717b2  !important;
+    color: #ffffff !important;
+}
+
+/* Add styles for the checked state */
+.btn-check:checked + .btn-outline-primary,
+.btn-outline-primary.active {
+    background-color: #6717b2 !important;
+    border-color: #6717b2 !important;
+    color: #ffffff !important;
+}
+
+.text-cust-color {
+    color: #6717b2 !important;
+}
+
+.form-check-input:checked {
+    background-color: #6717b2 !important;
+    border: 0;
+  }
+
+.otp-input {
+    width: 3em; /* Adjust width as needed */
+    text-align: center;
+    margin: 0 6px; /* Add gap between inputs */
+}

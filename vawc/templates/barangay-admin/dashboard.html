@@ -1,0 +1,144 @@
+{% extends "../base/base_barangay.html" %}
+{% block title %}Home | Dashboard{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container-fluid">
+    <h1 class="pt-5">DASHBOARD BARANGAY</h1>
+    <div class="row pt-3">
+        <div class="col-lg-4 col-md-4 col-sm-8">
+            <div class="card">
+                <div class="card-body">
+                  Total Victims
+                </div>
+              </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-8">
+            <div class="card">
+                <div class="card-body">
+                  Total BPO
+                </div>
+              </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-8">
+            <div class="card">
+                <div class="card-body">
+                  BPO Violations
+                </div>
+              </div>
+        </div>
+    </div><!--End of row-->
+    <div class="row">
+        <div class="col-lg-4 col-md-4 col-sm-8">
+            <div class="card">
+                <div class="card-body">
+                  Services Provided
+                </div>
+              </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-8">
+            <div class="card">
+                <div class="card-body">
+                  Active Cases
+                </div>
+              </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-8">
+            <div class="card">
+                <div class="card-body">
+                  Close Cases
+                </div>
+              </div>
+        </div>
+    </div><!--End of row-->
+
+    <div class="row">
+      <div class="col-lg-6 col-md-6 col-sm-8">
+        <div class="card">
+          <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-8">
+                  <div class="card-body">Cases Per Age</div>
+                </div>
+                <div class="col-lg-4 col-md-4 col-sm-8 pt-4">
+                  <select class="form-select" aria-label="Default select example">
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                  </select>
+                </div>
+              </div>
+            </div> 
+          </div><!--Done of first col-->
+
+      <div class="col-lg-6 col-md-6 col-sm-8">
+        <div class="card">
+          <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-8">
+              <div class="card-body">Trend of Cases</div>
+            </div>
+          <div class="col-lg-4 col-md-4 col-sm-8 pt-4">
+            <select class="form-select" aria-label="Default select example">
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+              <option value="2021">2021</option>
+            </select>
+          </div>
+        </div>
+        </div>
+      </div><!--Done of second col-->
+    </div><!--End of row-->
+
+
+    <div class="row">
+      <div class="card pb-3">
+        <div class="card-body">
+          <h5>Active Cases</h5>
+          <div class="pt-2 table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">UserId</th>
+                <th scope="col">FirstName</th>
+                <th scope="col">MiddleName</th>
+                <th scope="col">LastName</th>
+                <th scope="col">DateFiled</th> 
+              </tr>
+            </thead>
+            <tbody class="table-group-divider">
+              <tr>
+                <th scope="row">1</th>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+              </tr>
+              <tr>
+                <th scope="row">2</th>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+              </tr>
+              <tr>
+                <th scope="row">3</th>
+                <td>@twitter</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+              </tr>
+            </tbody>
+          </table>
+        </div><!--end of table-->
+        </div><!--end of card body-->
+      </div><!--card-->
+    </div><!--End of row-->
+
+</div>
+{% endblock content %}
+{% block scripts %}
+{% endblock scripts %}

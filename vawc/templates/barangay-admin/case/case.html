@@ -1,0 +1,125 @@
+{% extends "../../base/base_barangay.html" %}
+{% block title %}Report | Case {% endblock %}
+{% load static %}
+{% block styles %}
+<link href='https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css' rel='stylesheet'>
+<link href='https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css' rel='stylesheet'>
+<style>
+    .dataTables_wrapper .dataTables_length {
+        float: left;
+    }
+
+    .dataTables_wrapper .dataTables_paginate {
+        float: right;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container-fluid pb-4">
+    <h1 class="pt-3">Case</h1>
+    <div class="row mt-4">
+        <div class="col-lg-3 mb-lg-0 mb-3 ">
+            <div class="input-group search-keyword">
+                <input type="number" name="keyword" id="keyword" placeholder="Search Case Number" class="form-control">
+                <button class="btn btn-outline-secondary background-color-green" type="button"><i class='bx bx-search-alt'></i></button>
+            </div>
+        </div>
+        <div class="form-group col-lg-3 mb-lg-0 mb-3 ">
+            <select name="case_type" id="case_type" class="form-select me-md-2">
+                <option value="">All Case Type</option>
+                <option value="Impacted">Impacted Victim</option>
+                <option value="Behalf">Behalf of Impacted Victim</option>
+            </select>
+        </div>
+        <div class="form-group col-lg-3 mb-lg-0 mb-3 ">
+            <select name="service" id="service" class="form-select me-md-2">
+                <option value="">All Service</option>
+                <option value="Rescue">Crisis Intervention Including Rescue</option>
+                <option value="Issuance">Issuance / Enforcement of Barangay Protection Order</option>
+            </select>
+        </div>
+        <div class="form-group col-lg-3 mb-lg-0 mb-3 ">
+            <select name="status" id="status" class="form-select me-md-2">
+                <option value="">All Status</option>
+                <option value="Active">Active</option>
+                <option value="Close">Close</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="pt-4">
+        <table class="table table-striped nowrap" id="table-case" style="width:100%">
+            <thead class="border-bottom border-dark border-2 border-opacity-50">
+                <tr>
+                    <th scope="col" class="text-center">Case Number</th>
+                    <th scope="col">Type of Case</th>
+                    <th scope="col">Service</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Date Added</th>
+                    <th class="text-center" scope="col">View</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                {% for case in cases %}
+                <tr class="border-bottom border-2">
+                    <td class="text-center">{{ case.case_number }}</td>
+                    <td>
+                        {% if case.type_of_case == 'Impacted' %}
+                            Impacted Victim
+                        {% elif case.type_of_case == 'Behalf' %}
+                            Behalf of Impacted Victim
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if case.service_information == 'crisis' %}
+                            Crisis Intervention Including Rescue
+                        {% elif case.service_information == 'issuance' %}
+                            Issuance / Enforcement of Barangay Protection Order
+                        {% endif %}
+                    </td>
+                    <td>{{ case.status }}</td>
+                    <td>{{ case.date_added|date:"m/d/Y" }}</td>
+                    <td class="text-center"><a class="btn btn-outline-success" href="{% url 'barangay case view' case_id=case.id %}" role="button">View</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No cases found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div><!--end of div of table-->
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#table-case').DataTable({
+            dom: 'Brt <"bottom"lp>',
+            responsive: true,
+            fixedHeader: true,
+            lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+            //order: [[4, 'desc']],
+            order: [[0, 'desc']],
+        });
+
+        // Your filter options and search functionality
+        $('input#keyword').on('input', function(e){
+            var status = $(this).val();
+            $('#table-case').DataTable().columns([0]).search(status).draw();
+        });
+        $('select#case_type').on('change', function(e){
+            var status = $(this).val();
+            $('#table-case').DataTable().columns([1]).search(status).draw();
+        });
+        $('select#service').on('change', function(e){
+            var status = $(this).val();
+            $('#table-case').DataTable().columns([2]).search(status).draw();
+        });
+        $('select#status').on('change', function(e){
+            var status = $(this).val();
+            $('#table-case').DataTable().columns([3]).search(status).draw();
+        });
+    });
+</script>
+{% endblock scripts %}

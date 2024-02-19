@@ -1,0 +1,58 @@
+{% load static %}
+<!-- Sidebar Start -->
+<aside class="left-sidebar">
+    <!-- Sidebar scroll-->
+    <div>
+      <div class="brand-logo d-flex align-items-center justify-content-between" style="background-color:#7131ac;">
+        <a href="#" class="text-nowrap logo-img">
+          <img src="{% static 'img/vawc-logo.png' %}" width="180" alt="" />
+        </a>
+        <div class="text-white d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
+          <i class="bx bx-x fs-8"></i>
+        </div>
+      </div>
+      <!-- Sidebar navigation-->
+      <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
+        <ul id="sidebarnav">
+          <li class="nav-small-cap">
+            <i class="bx bx-home-alt-2 nav-small-cap-icon fs-4"></i>
+            <span class="hide-menu">HOME</span>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="{% url 'barangay dashboard' %}" aria-expanded="false">
+              <span>
+                <i class='bx bxs-dashboard'></i>
+              </span>
+              <span class="hide-menu">Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-small-cap">
+            <i class="bx bx-dots-horizontal nav-small-cap-icon fs-4"></i>
+            <span class="hide-menu">REPORT</span>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="{% url 'barangay case' %}" aria-expanded="false">
+              <span>
+                <i class='bx bxs-report'></i>
+              </span>
+              <span class="hide-menu">Cases</span>
+            </a>
+          </li>
+          <li class="nav-small-cap">
+            <i class="bx bx-dots-horizontal nav-small-cap-icon fs-4"></i>
+            <span class="hide-menu">MISC</span>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="{% url 'barangay settings' %}" aria-expanded="false">
+              <span>
+                <i class='bx bx-cog'></i>
+              </span>
+              <span class="hide-menu">Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <!-- End Sidebar navigation -->
+    </div>
+    <!-- End Sidebar scroll-->
+</aside>
