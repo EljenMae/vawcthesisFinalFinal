@@ -1,5 +1,5 @@
 {% extends "../../base/base_barangay.html" %}
-{% block title %}Report | Parent {% endblock %}
+{% block title %}Report | Parent (Victim) {% endblock %}
 {% load static %}
 {% block styles %}
 {% endblock %}
@@ -8,7 +8,7 @@
     <div class="pt-1 row">
         <a class="col text-decoration-none text-dark" href="{% url 'barangay case view' case_id=case.id %}" role="button"><i class='bx bx-arrow-back'></i> Back</a>
     </div>
-    <h2 class="pt-3 text-center">PARENT INFORMATION</h2>
+    <h2 class="pt-3 text-center">PARENT INFORMATION (Victim)</h2>
     <div class="d-flex align-items-start mt-3">
         <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
             {% for parent in parents %}
@@ -22,7 +22,7 @@
             <!-- Button to trigger modal -->
             <button class="btn btn-primary mt-4" id="addParentBtn">
                 <i class="bx bx-plus-circle" style="vertical-align: middle;"></i>
-                <span>Add Parent</span>
+                <span>Add Parent (Victim)</span>
             </button>
         </div>
         <div class="tab-content flex-grow-1" id="v-pills-tabContent">

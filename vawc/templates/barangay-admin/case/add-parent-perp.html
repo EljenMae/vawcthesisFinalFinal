@@ -1,0 +1,635 @@
+{% extends "../../base/base_barangay.html" %}
+{% block title %}Report | Parent (Perpetrator){% endblock %}
+{% load static %}
+{% block styles %}
+{% endblock %}
+{% block content %}
+<div class="container-fluid pb-4">
+    <div class="pt-1 row">
+        <a class="col text-decoration-none text-dark" href="{% url 'barangay case view' case_id=case.id %}" role="button"><i class='bx bx-arrow-back'></i> Back</a>
+    </div>
+    <h2 class="pt-3 text-center">PARENT INFORMATION (Perpetrator)</h2>
+    <div class="d-flex align-items-start mt-3">
+        <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+            {% for parent in parents %}
+            {% if forloop.first %}
+            <button class="nav-link custom-nav-link active mb-2" id="v-pills-parent-{{ forloop.counter }}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-parent-{{ forloop.counter }}" type="button" role="tab" aria-controls="v-pills-parent-{{ forloop.counter }}" aria-selected="true">Parent No. {{ forloop.counter }}</button>
+            {% else %}
+            <button class="nav-link custom-nav-link mb-2" id="v-pills-parent-{{ forloop.counter }}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-parent-{{ forloop.counter }}" type="button" role="tab" aria-controls="v-pills-parent-{{ forloop.counter }}" aria-selected="false">Parent No. {{ forloop.counter }}</button>
+            {% endif %}
+            {% endfor %}
+            <hr>
+            <!-- Button to trigger modal -->
+            <button class="btn btn-primary mt-4" id="addParentBtn">
+                <i class="bx bx-plus-circle" style="vertical-align: middle;"></i>
+                <span>Add Parent (Perpetrator)</span>
+            </button>
+        </div>
+        <div class="tab-content flex-grow-1" id="v-pills-tabContent">
+            {% if parents %}
+                {% for parent in parents %}
+                <div class="tab-pane fade {% if forloop.first %}show active{% endif %} h-100" id="v-pills-parent-{{ forloop.counter }}" role="tabpanel" aria-labelledby="v-pills-parent-{{ forloop.counter }}-tab" tabindex="0">
+                    <div class="container-fluid h-100">
+                        <div class="d-flex justify-content-end mb-3">
+                            <button class="btn btn-danger me-2 btn-confirm-delete-parent" data-parent-id="{{ parent.id }}" data-bs-toggle="modal" data-bs-target="#confirmParentDelete">
+                                <i class='bx bx-trash'></i>
+                                <span>Delete Parent</span>
+                            </button>
+                        </div>
+                        <form id="parent_form_{{ parent.id }}">
+                            {% csrf_token %}
+                            <input type="hidden" name="perp_id" value="{{ perpetrator.id }}">
+                            <input type="hidden" name="parent_id" value="{{ parent.id }}">
+                            <div class="h-100">
+                                <div class="row">
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="parent_first_name_{{ parent.id }}" name="parent_first_name_{{ parent.id }}" value="{{ parent.first_name }}">
+                                            <label for="parent_first_name_{{ parent.id }}">First Name</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="parent_middle_name_{{ parent.id }}" name="parent_middle_name_{{ parent.id }}" value="{{ parent.middle_name }}">
+                                            <label for="parent_middle_name_{{ parent.id }}">Middle Name</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="parent_last_name_{{ parent.id }}" name="parent_last_name_{{ parent.id }}" value="{{ parent.last_name }}">
+                                            <label for="parent_last_name_{{ parent.id }}">Last Name</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="parent_suffix_name_{{ parent.id }}" name="parent_suffix_name_{{ parent.id }}">
+                                                <option value="none" {% if parent.suffix == 'none' %}selected{% endif %}>N/A</option>
+                                                <option value="sr" {% if parent.suffix == 'sr' %}selected{% endif %}>Sr</option>
+                                                <option value="jr" {% if parent.suffix == 'jr' %}selected{% endif %}>Jr</option>
+                                                <option value="ii" {% if parent.suffix == 'ii' %}selected{% endif %}>II</option>
+                                                <option value="iii" {% if parent.suffix == 'iii' %}selected{% endif %}>III</option>
+                                                <option value="iv" {% if parent.suffix == 'iv' %}selected{% endif %}>IV</option>
+                                            </select>
+                                            <label for="parent_suffix_name_{{ parent.id }}">Suffix</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="parent_sex_{{ parent.id }}" name="parent_sex_{{ parent.id }}">
+                                                <option value="Male" {% if parent.sex == 'Male' %}selected{% endif %}>Male</option>
+                                                <option value="Female" {% if parent.sex == 'Female' %}selected{% endif %}>Female</option>
+                                            </select>
+                                            <label for="parent_sex_{{ parent.id }}">Suffix</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="parent_type_of_disability_{{ parent.id }}" name="parent_type_of_disability_{{ parent.id }}">
+                                                <option value="none" {% if parent.type_of_disability == 'none' %}selected{% endif %}>N/A</option>
+                                                <option value="With Disability" {% if parent.type_of_disability == 'With Disability' %}selected{% endif %}>With Disability</option>
+                                                <option value="Permanent Disability" {% if parent.type_of_disability == 'Permanent Disability' %}selected{% endif %}>Permanent Disability</option>
+                                                <option value="Temporary Disability" {% if parent.type_of_disability == 'Temporary Disability' %}selected{% endif %}>Temporary Disability</option>
+                                            </select>
+                                            <label for="parent_type_of_disability_{{ parent.id }}">Type of Disability</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <input type="date" class="form-control" id="parent_date_of_birth_{{ parent.id }}" name="parent_date_of_birth_{{ parent.id }}" value="{{ parent.date_of_birth|date:'Y-m-d' }}">
+                                            <label for="parent_date_of_birth_{{ parent.id }}">Date of Birth: </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="parent_civil_status_{{ parent.id }}" name="parent_civil_status_{{ parent.id }}">
+                                            <option value="single" {% if parent.civil_status == 'none' %}selected{% endif %}>Single</option>
+                                            <option value="married" {% if parent.civil_status == 'married' %}selected{% endif %}>Married</option>
+                                            <option value="live-in" {% if parent.civil_status == 'live-in' %}selected{% endif %}>Live-In</option>
+                                            <option value="widowed" {% if parent.civil_status == 'widowed' %}selected{% endif %}>Widowed</option>
+                                            <option value="separated" {% if parent.civil_status == 'separated' %}selected{% endif %}>Separated</option>
+                                            </select>
+                                            <label for="parent_civil_status_{{ parent.id }}">Civil Status</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                </div><!--End of row-->
+                                <div class="row">
+                                    <div class="col-lg-6 col-6">
+                                        <div class="form-floating mb-3">
+                                            <input type="number" class="form-control" id="parent_contact_number_{{ parent.id }}" name="parent_contact_number_{{ parent.id }}" value="{{ parent.contact_number }}">
+                                            <label for="parent_contact_number_{{ parent.id }}">Contact Number</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    
+                                    <div class="col-lg-6 col-6">
+                                        <div class="form-floating mb-3">
+                                            <input type="number" class="form-control" id="parent_telephone_number_{{ parent.id }}" name="parent_telephone_number_{{ parent.id }}" value="{{ parent.telephone_number }}">
+                                            <label for="parent_telephone_number_{{ parent.id }}">Telephone Number</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                </div><!--End of row-->
+                                <div class="row">
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="parent_educational_attainment_{{ parent.id }}" name="parent_educational_attainment_{{ parent.id }}">
+                                                <option value="none"{% if parent.educational_attainment == 'none' %}selected{% endif %}>None</option>
+                                                <option value="highschool"{% if parent.educational_attainment == 'highschool' %}selected{% endif %}>High School Level</option>
+                                                <option value="vocational"{% if parent.educational_attainment == 'vocational' %}selected{% endif %}>Vocational</option>
+                                                <option value="collegeLevel"{% if parent.educational_attainment == 'collegeLevel' %}selected{% endif %}>College Level</option>
+                                                <option value="post-grad"{% if parent.educational_attainment == 'post-grad' %}selected{% endif %}>Post Graduated</option>
+                                                <option value="no-response"{% if parent.educational_attainment == 'no-response' %}selected{% endif %}>No Response</option>
+                                                <option value="educt-others"{% if parent.educational_attainment == 'educt-others' %}selected{% endif %}>Others</option>
+                                            </select>
+                                            <label for="parent_educational_attainment_{{ parent.id }}">Highest Educational Attainment</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="parent_occupation_{{ parent.id }}" name="parent_occupation_{{ parent.id }}" value="{{ parent.occupation}}">
+                                            <label for="parent_occupation_{{ parent.id }}">Occupation</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="parent_nationality_{{ parent.id }}" name="parent_nationality_{{ parent.id }}" value="{{ parent.nationality }}">
+                                            <label for="parent_nationality_{{ parent.id }}">Nationality</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="parent_religion_{{ parent.id }}" name="parent_religion_{{ parent.id }}">
+                                                <option value="none" {% if parent.religion == 'none' %}selected{% endif %}>None</option>
+                                                <option value="roman-catholic" {% if parent.religion == 'roman-catholic' %}selected{% endif %}>Roman Catholic</option>
+                                                <option value="islam" {% if parent.religion == 'islam' %}selected{% endif %}>Islam</option>
+                                                <option value="protestant" {% if parent.religion == 'protestant' %}selected{% endif %}>Protestant</option>
+                                                <option value="iglesia-ni-kristo" {% if parent.religion == 'iglesia-ni-kristo' %}selected{% endif %}>Iglesia ni Kristo</option>
+                                                <option value="aglipayan" {% if parent.religion == 'aglipayan' %}selected{% endif %}>Aglipayan</option>
+                                                <option value="other-religion" {% if parent.religion == 'other-religion' %}selected{% endif %}>Others</option>
+                                            </select>
+                                            <label for="parent_religion_{{ parent.id }}">Religion</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                </div><!--End of row-->
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-4 col-sm-8">
+                                        <div class="form-floating mb-3">
+                                            <input type="text" class="form-control" id="parent_house_information_{{ parent.id }}" name="parent_house_information_{{ parent.id }}" value="{{ parent.house_information }}">
+                                            <label for="parent_house_information_{{ parent.id }}">House Information</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    <div class="col-lg-3 col-md-4 col-sm-8">
+                                        <div class="form-floating mb-3">
+                                            <input type="text" class="form-control" id="parent_street_{{ parent.id }}" name="parent_street_{{ parent.id }}" value="{{ parent.street }}">
+                                            <label for="parent_street_{{ parent.id }}">Street</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    <div class="col-lg-3 col-md-4 col-sm-8">
+                                        <div class="form-floating mb-3">
+                                            <input type="text" class="form-control" id="parent_barangay_{{ parent.id }}" name="parent_barangay_{{ parent.id }}" value="{{ parent.barangay }}">
+                                            <label for="parent_barangay_{{ parent.id }}">Barangay</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                </div><!--End of row-->
+                                <div class="row">
+                                    <div class="col-lg-3 mb-3">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="parent_province_{{ parent.id }}" name="parent_province_{{ parent.id }}" value="{{ parent.province }}">
+                                            <label for="parent_province_{{ parent.id }}">Province</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    <div class="col-lg-3 col-12">
+                                        <div class="form-floating mb-3">
+                                            <input type="text" class="form-control" id="parent_city_{{ parent.id }}" name="parent_city_{{ parent.id }}" value="{{ parent.city }}">
+                                            <label for="parent_city_{{ parent.id }}">City</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    <div class="col-lg-6 col-12">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="parent_region_{{ parent.id }}" name="parent_region_{{ parent.id }}">
+                                                <option value="region-I" {% if parent.region == 'region-I' %}selected{% endif %}>Region I – Ilocos Region</option>
+                                                <option value="region-II" {% if parent.region == 'region-II' %}selected{% endif %}>Region II – Cagayan Valley</option>
+                                                <option value="region-III" {% if parent.region == 'region-III' %}selected{% endif %}>Region III – Central Luzon</option>
+                                                <option value="region-IV" {% if parent.region == 'region-IV' %}selected{% endif %}>Region IV‑A – CALABARZON</option>
+                                                <option value="mimaropa" {% if parent.region == 'mimaropa' %}selected{% endif %}>MIMAROPA Region</option>
+                                                <option value="region-V" {% if parent.region == 'region-V' %}selected{% endif %}>Region V – Bicol Region</option>
+                                                <option value="region-VI" {% if parent.region == 'region-VI' %}selected{% endif %}>Region VI – Western Visayas</option>
+                                                <option value="region-VII" {% if parent.region == 'region-VII' %}selected{% endif %}>Region VII – Central Visayas</option>
+                                                <option value="region-VIII" {% if parent.region == 'region-VIII' %}selected{% endif %}>Region VIII – Eastern Visayas</option>
+                                                <option value="region-IX" {% if parent.region == 'region-IX' %}selected{% endif %}>Region IX – Zamboanga Peninsula</option>
+                                                <option value="region-X" {% if parent.region == 'region-X' %}selected{% endif %}>Region X – Northern Mindanao</option>
+                                                <option value="region-XI" {% if parent.region == 'region-XI' %}selected{% endif %}>Region XI – Davao Region</option>
+                                                <option value="region-XII" {% if parent.region == 'region-XII' %}selected{% endif %}>Region XII – SOCCSKSARGEN</option>
+                                                <option value="region-XIII" {% if parent.region == 'region-XIII' %}selected{% endif %}>Region XIII – Caraga</option>
+                                                <option value="ncr" {% if parent.region == 'ncr' %}selected{% endif %}>NCR – National Capital Region</option>
+                                                <option value="car" {% if parent.region == 'car' %}selected{% endif %}>CAR – Cordillera Administrative Region</option>
+                                                <option value="barmm" {% if parent.region == 'barmm' %}selected{% endif %}>BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                            </select>
+                                            <label for="parent_region_{{ parent.id }}">Region</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mt-lg-2 mt-2">
+                                <button class="btn btn-primary save-btn-parent_{{ parent.id }}" type="submit">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="tab-pane fade show active h-100" id="v-pills-no-parents" role="tabpanel" aria-labelledby="v-pills-no-parents-tab" tabindex="0">
+                <div class="card border border-dark border-1 border-opacity-10 shadow-lg">
+                    <div class="card-body text-center">
+                      No Parent Information Yet. 
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!-- Add the toast container to your HTML, make sure it's placed in a suitable location -->
+<div class="toast-container position-fixed top-0 end-0 p-3 text-light">
+    <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header text-dark" style="background-color:#899499;">
+            <img src="{% static 'img/ecs-no-bg-2.png' %}" class="rounded me-2" alt="..." style="width:20px;">
+            <strong class="me-auto text-dark">Success</strong>
+            <small>Just Now</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-dark">
+        </div>
+    </div>
+    <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header text-dark" style="background-color:#899499;">
+            <img src="{% static 'img/ecs-no-bg-2.png' %}" class="rounded me-2" alt="..." style="width:20px;">
+            <strong class="me-auto text-dark">Error</strong>
+            <small>Just Now</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-dark">
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="confirmParentDelete" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Confirm Delete</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            Are you Sure you want to Delete this Parent?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Yes</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addParentModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Add Parent</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="add_parent_form">
+            {% csrf_token %}
+            <div class="modal-body">
+                <input type="hidden" name="perp_id" value="{{ perpetrator.id }}">
+                <div class="h-100">
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="parent_first_name" name="parent_first_name">
+                                <label for="parent_first_name">First Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="parent_middle_name" name="parent_middle_name">
+                                <label for="parent_middle_name">Middle Name</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="parent_last_name" name="parent_last_name">
+                                <label for="parent_last_name">Last Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="parent_suffix_name" name="parent_suffix_name">
+                                    <option value="none">N/A</option>
+                                    <option value="sr">Sr</option>
+                                    <option value="jr">Jr</option>
+                                    <option value="ii">II</option>
+                                    <option value="iii">III</option>
+                                    <option value="iv">IV</option>
+                                </select>
+                                <label for="parent_suffix_name">Suffix</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="parent_sex" name="parent_sex">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                                <label for="parent_sex">Suffix</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="parent_type_of_disability" name="parent_type_of_disability">
+                                    <option value="none">N/A</option>
+                                    <option value="With Disability">With Disability</option>
+                                    <option value="Permanent Disability">Permanent Disability</option>
+                                    <option value="Temporary Disability">Temporary Disability</option>
+                                </select>
+                                <label for="parent_type_of_disability">Type of Disability</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="parent_date_of_birth" name="parent_date_of_birth">
+                                <label for="parent_date_of_birth">Date of Birth: </label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="parent_civil_status" name="parent_civil_status">
+                                    <option value="single">Single</option>
+                                    <option value="married">Married</option>
+                                    <option value="live-in">Live-In</option>
+                                    <option value="widowed">Widowed</option>
+                                    <option value="separated">Separated</option>
+                                </select>
+                                <label for="parent_civil_status">Civil Status</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-6 col-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="parent_contact_number" name="parent_contact_number">
+                                <label for="parent_contact_number">Contact Number</label>
+                            </div>
+                        </div><!--End of col-->
+                        
+                        <div class="col-lg-6 col-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="parent_telephone_number" name="parent_telephone_number">
+                                <label for="parent_telephone_number">Telephone Number</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="parent_educational_attainment" name="parent_educational_attainment">
+                                    <option value="none">None</option>
+                                    <option value="highschool">High School Level</option>
+                                    <option value="vocational">Vocational</option>
+                                    <option value="collegeLevel">College Level</option>
+                                    <option value="post-grad">Post Graduated</option>
+                                    <option value="no-response">No Response</option>
+                                    <option value="educt-others">Others</option>
+                                </select>
+                                <label for="parent_educational_attainment">Highest Educational Attainment</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="parent_occupation" name="parent_occupation">
+                                <label for="parent_occupation">Occupation</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="parent_nationality" name="parent_nationality">
+                                <label for="parent_nationality">Nationality</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="parent_religion" name="parent_religion">
+                                    <option value="none">None</option>
+                                    <option value="roman-catholic">Roman Catholic</option>
+                                    <option value="islam">Islam</option>
+                                    <option value="protestant">Protestant</option>
+                                    <option value="iglesia-ni-kristo">Iglesia ni Kristo</option>
+                                    <option value="aglipayan">Aglipayan</option>
+                                    <option value="other-religion">Others</option>
+                                </select>
+                                <label for="parent_religion">Religion</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-6 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="parent_house_information" name="parent_house_information">
+                                <label for="parent_house_information">House Information</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="parent_street" name="parent_street">
+                                <label for="parent_street">Street</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="parent_barangay" name="parent_barangay">
+                                <label for="parent_barangay">Barangay</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="parent_province" name="parent_province">
+                                <label for="parent_province">Province</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-12">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="parent_city" name="parent_city">
+                                <label for="parent_city">City</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-6 col-12">
+                            <div class="form-floating">
+                                <select class="form-select" id="parent_region" name="parent_region">
+                                    <option value="region-I">Region I – Ilocos Region</option>
+                                    <option value="region-II">Region II – Cagayan Valley</option>
+                                    <option value="region-III">Region III – Central Luzon</option>
+                                    <option value="region-IV">Region IV‑A – CALABARZON</option>
+                                    <option value="mimaropa">MIMAROPA Region</option>
+                                    <option value="region-V">Region V – Bicol Region</option>
+                                    <option value="region-VI">Region VI – Western Visayas</option>
+                                    <option value="region-VII">Region VII – Central Visayas</option>
+                                    <option value="region-VIII">Region VIII – Eastern Visayas</option>
+                                    <option value="region-IX">Region IX – Zamboanga Peninsula</option>
+                                    <option value="region-X">Region X – Northern Mindanao</option>
+                                    <option value="region-XI">Region XI – Davao Region</option>
+                                    <option value="region-XII">Region XII – SOCCSKSARGEN</option>
+                                    <option value="region-XIII">Region XIII – Caraga</option>
+                                    <option value="ncr">NCR – National Capital Region</option>
+                                    <option value="car">CAR – Cordillera Administrative Region</option>
+                                    <option value="barmm">BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                </select>
+                                <label for="parent_region">Region</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button class="btn btn-primary add-btn-parent" type="submit">Add</button>
+            </div>
+        </form>
+      </div>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('form[id^="parent_form_"]').submit(function(e) {
+            e.preventDefault();
+
+            var form = $(this);
+            var parent_id = form.attr('id').split('_')[2];
+            $.ajax({
+                type: 'POST',
+                url: '/save_parent_perp_data/' + parent_id + '/',
+                data: form.serialize(),
+                success: function(response) {
+                    // Display success toast
+                    $('#successToast .toast-body').text(response.message);
+                    $('#successToast').toast('show');
+    
+                    // Reload page after 2 seconds
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    // Display error toast
+                    $('#errorToast .toast-body').text('Error: ' + textStatus);
+                    $('#errorToast').toast('show');
+                }
+            });
+        });
+
+        $('#add_parent_form').submit(function(e) {
+            e.preventDefault(); // Prevent the form from submitting normally
+
+            // Serialize the form data
+            var formData = $(this).serialize();
+
+            // Send AJAX request
+            $.ajax({
+                url: '{% url "add_new_parent_perp_form" %}', // URL to your view
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        // Close the modal
+                        $('#addParentModal').modal('hide');
+    
+                        // Show success toast
+                        $('#successToast .toast-body').text(response.message);
+                        $('#successToast').toast('show');
+    
+                        // Reload the page after 2 seconds
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        // Show error toast
+                        $('#errorToast .toast-body').text(response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Show error toast
+                    $('#errorToast .toast-body').text('An error occurred while processing your request.');
+                    $('#errorToast').toast('show');
+                }
+            });
+        });
+        $('.btn-confirm-delete-parent').click(function() {
+            var parentId = $(this).data('parent-id');
+            
+            // Set up click event for the "Yes" button inside the modal
+            $('#confirmParentDelete .btn-primary').click(function() {
+                // Send AJAX request to delete parent
+                $.ajax({
+                    url: '{% url "delete_parent_perp" %}',
+                    method: 'POST',
+                    data: {
+                        parent_id: parentId,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Display success message and reload page after 2 seconds
+                            $('#successToast .toast-body').text(response.message);
+                            $('#successToast').toast('show');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 2000);
+                        } else {
+                            // Display error message
+                            $('#errorToast .toast-body').text(response.message);
+                            $('#errorToast').toast('show');
+                        }
+                    },
+                    error: function(xhr, errmsg, err) {
+                        console.log(xhr.status + ": " + xhr.responseText);
+                    }
+                });
+            });
+        });
+        // Function to check the parent count before opening the modal
+        function checkParentCount() {
+            $.ajax({
+                url: '{% url "check_parent_count" %}',
+                method: 'GET',
+                success: function(response) {
+                    if (response.error) {
+                        // Display the error message using the error toast
+                        $('#errorToast .toast-body').text(response.error);
+                        $('#errorToast').toast('show');
+                    } else {
+                        // Open the "Add Parent" modal
+                        $('#addParentModal').modal('show');
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    console.log(xhr.status + ": " + xhr.responseText);
+                }
+            });
+        }
+
+        // Attach the checkParentCount function to the "Add Parent" button click event
+        $('#addParentBtn').click(function() {
+            checkParentCount();
+        });
+    });
+</script>
+{% endblock scripts %}

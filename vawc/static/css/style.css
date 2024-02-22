@@ -7,6 +7,17 @@ body {
 main {
     flex: 1;
 }
+.dataTables_wrapper .dataTables_length {
+    float: left;    
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    float: right;
+}
+
+.bottom{
+    margin-bottom: 50px;
+}
 .custom-tab.active {
     background: transparent !important;
     color: black !important;

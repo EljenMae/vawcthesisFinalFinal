@@ -118,11 +118,11 @@ EMAIL_HOST_PASSWORD = 'wfkw iylx slap iskf'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Manila'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 AUTH_USER_MODEL = "account.CustomUser"
 

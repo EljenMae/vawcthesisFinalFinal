@@ -192,6 +192,7 @@ def behalf_victim_view (request):
 def add_case(request):
     if request.method == 'POST':
         
+        email = request.POST.get('email-confirm')
         # Create a new QueryDict object
         modified_post_data = QueryDict('', mutable=True)
         
@@ -222,6 +223,7 @@ def add_case(request):
         
         case_data = {
             'case_number': get_next_case_number(),
+            'email': email,
             'date_latest_incident': request.POST.get('date-latest-incident'),
             'incomplete_date': request.POST.get('incomplete-date'),
             'place_of_incident': request.POST.get('place-incident'),
@@ -343,7 +345,10 @@ def view_case(request, case_id):
         evidences = Evidence.objects.filter(case=case)
         victims = Victim.objects.filter(case_victim=case)
         perpetrators = Perpetrator.objects.filter(case_perpetrator=case)
-        parents = Parent.objects.filter(victim_parent__in=victims)
+        status_history = Status_History.objects.filter(case_status_history=case)
+        
+        # Retrieve only the latest status history entry
+        latest_status_history = status_history.order_by('-status_date_added').first()
         
         print(request.session['security_status'])
         
@@ -413,7 +418,8 @@ def view_case(request, case_id):
             'evidence': evidences,
             'victims': victims,
             'perpetrators': perpetrators,
-            'parents': parents,
+            'status_histories': status_history,
+            'latest_status_history': latest_status_history,
             'global': request.session
         })
     except Case.DoesNotExist:
@@ -461,26 +467,26 @@ def add_new_victim(request):
         
         case_instance = get_object_or_404(Case, id=case_id)
         # Extract form data
-        first_name = request.POST.get('victim_first_name')
-        middle_name = request.POST.get('victim_middle_name')
-        last_name = request.POST.get('victim_last_name')
-        suffix = request.POST.get('victim_suffix_name')
-        date_of_birth = request.POST.get('victim_date_of_birth')
-        sex = request.POST.get('victim_sex')
-        civil_status = request.POST.get('victim_civil_status')
-        educational_attainment = request.POST.get('victim_educational_attainment')
-        occupation = request.POST.get('victim_occupation')
-        type_of_disability = request.POST.get('victim_type_of_disability')
-        nationality = request.POST.get('victim_nationality')
-        religion = request.POST.get('victim_religion')
-        contact_number = request.POST.get('victim_contact_number')
-        telephone_number = request.POST.get('victim_telephone_number')
-        house_information = request.POST.get('victim_house_information')
-        street = request.POST.get('victim_street')
-        barangay = request.POST.get('victim_barangay')
-        province = request.POST.get('victim_province')
-        city = request.POST.get('victim_city')
-        region = request.POST.get('victim_region')
+        first_name = encrypt_data(request.POST.get('victim_first_name')).decode('utf-8')
+        middle_name = encrypt_data(request.POST.get('victim_middle_name')).decode('utf-8')
+        last_name = encrypt_data(request.POST.get('victim_last_name')).decode('utf-8')
+        suffix = encrypt_data(request.POST.get('victim_suffix_name')).decode('utf-8')
+        date_of_birth = encrypt_data(request.POST.get('victim_date_of_birth')).decode('utf-8')
+        sex = encrypt_data(request.POST.get('victim_sex')).decode('utf-8')
+        civil_status = encrypt_data(request.POST.get('victim_civil_status')).decode('utf-8')
+        educational_attainment = encrypt_data(request.POST.get('victim_educational_attainment')).decode('utf-8')
+        occupation = encrypt_data(request.POST.get('victim_occupation')).decode('utf-8')
+        type_of_disability = encrypt_data(request.POST.get('victim_type_of_disability')).decode('utf-8')
+        nationality = encrypt_data(request.POST.get('victim_nationality')).decode('utf-8')
+        religion = encrypt_data(request.POST.get('victim_religion')).decode('utf-8')
+        contact_number = encrypt_data(request.POST.get('victim_contact_number')).decode('utf-8')
+        telephone_number = encrypt_data(request.POST.get('victim_telephone_number')).decode('utf-8')
+        house_information = encrypt_data(request.POST.get('victim_house_information')).decode('utf-8')
+        street = encrypt_data(request.POST.get('victim_street')).decode('utf-8')
+        barangay = encrypt_data(request.POST.get('victim_barangay')).decode('utf-8')
+        province = encrypt_data(request.POST.get('victim_province')).decode('utf-8')
+        city = encrypt_data(request.POST.get('victim_city')).decode('utf-8')
+        region = encrypt_data(request.POST.get('victim_region')).decode('utf-8')
 
         print(case_id)
         print(first_name)
@@ -515,7 +521,6 @@ def add_new_victim(request):
     except Exception as e:
         # Return error response
         return JsonResponse({'success': False, 'message': str(e)})
-
 @require_POST
 def add_new_perpetrator(request):
     try:
@@ -523,29 +528,29 @@ def add_new_perpetrator(request):
         
         case_instance = get_object_or_404(Case, id=case_id)
         # Extract form data
-        first_name = request.POST.get('perpetrator_first_name')
-        middle_name = request.POST.get('perpetrator_middle_name')
-        last_name = request.POST.get('perpetrator_last_name')
-        suffix = request.POST.get('perpetrator_suffix_name')
-        perpetrator_identifying_marks = request.POST.get('perpetrator_identifying_marks')
-        perpetrator_alias = request.POST.get('perpetrator_alias')
-        perp_relationship_victim = request.POST.get('perp-relationship-victim')
-        date_of_birth = request.POST.get('perpetrator_date_of_birth')
-        sex = request.POST.get('perpetrator_sex')
-        civil_status = request.POST.get('perpetrator_civil_status')
-        educational_attainment = request.POST.get('perpetrator_educational_attainment')
-        occupation = request.POST.get('perpetrator_occupation')
-        type_of_disability = request.POST.get('perpetrator_type_of_disability')
-        nationality = request.POST.get('perpetrator_nationality')
-        religion = request.POST.get('perpetrator_religion')
-        contact_number = request.POST.get('perpetrator_contact_number')
-        telephone_number = request.POST.get('perpetrator_telephone_number')
-        house_information = request.POST.get('perpetrator_house_information')
-        street = request.POST.get('perpetrator_street')
-        barangay = request.POST.get('perpetrator_barangay')
-        province = request.POST.get('perpetrator_province')
-        city = request.POST.get('perpetrator_city')
-        region = request.POST.get('perpetrator_region')
+        first_name = encrypt_data(request.POST.get('perpetrator_first_name')).decode('utf-8')
+        middle_name = encrypt_data(request.POST.get('perpetrator_middle_name')).decode('utf-8')
+        last_name = encrypt_data(request.POST.get('perpetrator_last_name')).decode('utf-8')
+        suffix = encrypt_data(request.POST.get('perpetrator_suffix_name')).decode('utf-8')
+        perpetrator_identifying_marks = encrypt_data(request.POST.get('perpetrator_identifying_marks')).decode('utf-8')
+        perpetrator_alias = encrypt_data(request.POST.get('perpetrator_alias')).decode('utf-8')
+        perp_relationship_victim = encrypt_data(request.POST.get('perp-relationship-victim')).decode('utf-8')
+        date_of_birth = encrypt_data(request.POST.get('perpetrator_date_of_birth')).decode('utf-8')
+        sex = encrypt_data(request.POST.get('perpetrator_sex')).decode('utf-8')
+        civil_status = encrypt_data(request.POST.get('perpetrator_civil_status')).decode('utf-8')
+        educational_attainment = encrypt_data(request.POST.get('perpetrator_educational_attainment')).decode('utf-8')
+        occupation = encrypt_data(request.POST.get('perpetrator_occupation')).decode('utf-8')
+        type_of_disability = encrypt_data(request.POST.get('perpetrator_type_of_disability')).decode('utf-8')
+        nationality = encrypt_data(request.POST.get('perpetrator_nationality')).decode('utf-8')
+        religion = encrypt_data(request.POST.get('perpetrator_religion')).decode('utf-8')
+        contact_number = encrypt_data(request.POST.get('perpetrator_contact_number')).decode('utf-8')
+        telephone_number = encrypt_data(request.POST.get('perpetrator_telephone_number')).decode('utf-8')
+        house_information = encrypt_data(request.POST.get('perpetrator_house_information')).decode('utf-8')
+        street = encrypt_data(request.POST.get('perpetrator_street')).decode('utf-8')
+        barangay = encrypt_data(request.POST.get('perpetrator_barangay')).decode('utf-8')
+        province = encrypt_data(request.POST.get('perpetrator_province')).decode('utf-8')
+        city = encrypt_data(request.POST.get('perpetrator_city')).decode('utf-8')
+        region = encrypt_data(request.POST.get('perpetrator_region')).decode('utf-8')
 
         print(case_id)
         print(first_name)
@@ -583,7 +588,6 @@ def add_new_perpetrator(request):
     except Exception as e:
         # Return error response
         return JsonResponse({'success': False, 'message': str(e)})
-
 
 @require_POST
 def save_perpetrator_data(request, perpetrator_id):
@@ -629,6 +633,9 @@ def delete_perpetrator(request):
     perpetrator.delete()
     return JsonResponse({'success': True, 'message': 'Perpetrator deleted successfully'})
 
+#parent victim data crud ----------------------------------------------------------------
+
+@login_required
 def add_parent_view(request, case_id, victim_id):
     # Get the Case and Victim objects
     case = Case.objects.get(id=case_id)
@@ -703,7 +710,7 @@ def save_parent_data(request, parent_id):
 def add_new_parent_form(request):
     try:
         victim_id = request.POST.get('victim_id')
-        
+
         # Extract form data
         first_name = encrypt_data(request.POST.get('parent_first_name')).decode('utf-8')
         middle_name = encrypt_data(request.POST.get('parent_middle_name')).decode('utf-8')
@@ -758,6 +765,169 @@ def add_new_parent_form(request):
         return JsonResponse({'success': False, 'message': str(e)})
 
 @require_POST
+def delete_parent(request):
+    try:
+        parent_id = request.POST.get('parent_id')
+        parent = Parent.objects.get(id=parent_id)
+        parent.delete()
+        return JsonResponse({'success': True, 'message': 'Parent deleted successfully'})
+    except Parent.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Parent does not exist'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+
+#parent victim data crud ----------------------------------------------------------------
+
+#parent perp data crud ----------------------------------------------------------------
+@login_required
+def add_parent_perp_view(request, case_id, perp_id):
+    # Get the Case and Victim objects
+    case = Case.objects.get(id=case_id)
+    perpetrator = Perpetrator.objects.get(id=perp_id)
+
+    # Query Parent objects related to the Victim
+    parents = Parent_Perpetrator.objects.filter(perpetrator_parent=perpetrator)
+    
+    print("test")
+    
+   
+    if request.session['security_status'] == "decrypted":
+        for parent in parents:
+            parent.first_name = decrypt_data(parent.first_name)
+            parent.middle_name = decrypt_data(parent.middle_name)
+            parent.last_name = decrypt_data(parent.last_name)
+            parent.suffix = decrypt_data(parent.suffix)
+            parent.date_of_birth = decrypt_data(parent.date_of_birth)
+            parent.civil_status = decrypt_data(parent.civil_status)
+            parent.educational_attainment = decrypt_data(parent.educational_attainment)
+            parent.occupation = decrypt_data(parent.occupation)
+            parent.type_of_disability = decrypt_data(parent.type_of_disability)
+            parent.nationality = decrypt_data(parent.nationality)
+            parent.religion = decrypt_data(parent.religion)
+            parent.contact_number = decrypt_data(parent.contact_number)
+            parent.telephone_number = decrypt_data(parent.telephone_number)
+            parent.house_information = decrypt_data(parent.house_information)
+            parent.street = decrypt_data(parent.street)
+            parent.barangay = decrypt_data(parent.barangay)
+            parent.province = decrypt_data(parent.province)
+            parent.city = decrypt_data(parent.city)
+            parent.region = decrypt_data(parent.region)
+
+    return render(request, 'barangay-admin/case/add-parent-perp.html', {
+        'perpetrator': perpetrator,
+        'case': case,
+        'parents': parents,
+    })
+
+@require_POST
+def add_new_parent_perp_form(request):
+    try:
+        perp_id = request.POST.get('perp_id')
+        perpetrator = Perpetrator.objects.get(id=perp_id)
+
+        # Extract form data
+        first_name = encrypt_data(request.POST.get('parent_first_name')).decode('utf-8')
+        middle_name = encrypt_data(request.POST.get('parent_middle_name')).decode('utf-8')
+        last_name = encrypt_data(request.POST.get('parent_last_name')).decode('utf-8')
+        suffix = encrypt_data(request.POST.get('parent_suffix_name')).decode('utf-8')
+        date_of_birth = encrypt_data(request.POST.get('parent_date_of_birth')).decode('utf-8')
+        sex = encrypt_data(request.POST.get('parent_sex')).decode('utf-8')
+        civil_status = encrypt_data(request.POST.get('parent_civil_status')).decode('utf-8')
+        educational_attainment = encrypt_data(request.POST.get('parent_educational_attainment')).decode('utf-8')
+        occupation = encrypt_data(request.POST.get('parent_occupation')).decode('utf-8')
+        type_of_disability = encrypt_data(request.POST.get('parent_type_of_disability')).decode('utf-8')
+        nationality = encrypt_data(request.POST.get('parent_nationality')).decode('utf-8')
+        religion = encrypt_data(request.POST.get('parent_religion')).decode('utf-8')
+        contact_number = encrypt_data(request.POST.get('parent_contact_number')).decode('utf-8')
+        telephone_number = encrypt_data(request.POST.get('parent_telephone_number')).decode('utf-8')
+        house_information = encrypt_data(request.POST.get('parent_house_information')).decode('utf-8')
+        street = encrypt_data(request.POST.get('parent_street')).decode('utf-8')
+        barangay = encrypt_data(request.POST.get('parent_barangay')).decode('utf-8')
+        province = encrypt_data(request.POST.get('parent_province')).decode('utf-8')
+        city = encrypt_data(request.POST.get('parent_city')).decode('utf-8')
+        region = encrypt_data(request.POST.get('parent_region')).decode('utf-8')
+        # Create and save the new parent instance
+        parent = Parent_Perpetrator.objects.create(
+            perpetrator_parent=perpetrator,
+            first_name=first_name,
+            middle_name=middle_name,
+            last_name=last_name,
+            suffix=suffix,
+            date_of_birth=date_of_birth,
+            sex=sex,
+            civil_status=civil_status,
+            educational_attainment=educational_attainment,
+            occupation=occupation,
+            type_of_disability=type_of_disability,
+            nationality=nationality,
+            religion=religion,
+            contact_number=contact_number,
+            telephone_number=telephone_number,
+            house_information=house_information,
+            street=street,
+            barangay=barangay,
+            province=province,
+            city=city,
+            region=region
+        )
+
+        # Return success response
+        return JsonResponse({'success': True, 'message': 'Parent added successfully'})
+    except Exception as e:
+        # Return error response
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@require_POST
+def save_parent_perp_data(request, parent_id):
+    try:
+        parent = get_object_or_404(Parent_Perpetrator, id=parent_id)
+
+        # Update parent data
+        parent.first_name = request.POST.get('parent_first_name_' + str(parent_id))
+        parent.middle_name = request.POST.get('parent_middle_name_' + str(parent_id))
+        parent.last_name = request.POST.get('parent_last_name_' + str(parent_id))
+        parent.suffix = request.POST.get('parent_suffix_name_' + str(parent_id))
+        parent.sex = request.POST.get('parent_sex_' + str(parent_id))
+        parent.type_of_disability = request.POST.get('parent_type_of_disability_' + str(parent_id))
+        parent.date_of_birth = request.POST.get('parent_date_of_birth_' + str(parent_id))
+        parent.civil_status = request.POST.get('parent_civil_status_' + str(parent_id))
+        parent.contact_number = request.POST.get('parent_contact_number_' + str(parent_id))
+        parent.telephone_number = request.POST.get('parent_telephone_number_' + str(parent_id))
+        parent.educational_attainment = request.POST.get('parent_educational_attainment_' + str(parent_id))
+        parent.occupation = request.POST.get('parent_occupation_' + str(parent_id))
+        parent.nationality = request.POST.get('parent_nationality_' + str(parent_id))
+        parent.religion = request.POST.get('parent_religion_' + str(parent_id))
+        parent.house_information = request.POST.get('parent_house_information_' + str(parent_id))
+        parent.street = request.POST.get('parent_street_' + str(parent_id))
+        parent.barangay = request.POST.get('parent_barangay_' + str(parent_id))
+        parent.province = request.POST.get('parent_province_' + str(parent_id))
+        parent.city = request.POST.get('parent_city_' + str(parent_id))
+        parent.region = request.POST.get('parent_region_' + str(parent_id))
+
+        # Save parent data
+        parent.save()
+
+        return JsonResponse({'success': True, 'message': 'Parent data saved successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@require_POST
+def delete_parent_perp(request):
+    try:
+        parent_id = request.POST.get('parent_id')
+        parent = Parent_Perpetrator.objects.get(id=parent_id)
+        parent.delete()
+        return JsonResponse({'success': True, 'message': 'Parent deleted successfully'})
+    except Parent_Perpetrator.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Parent does not exist'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+#parent perp data crud ----------------------------------------------------------------
+
+
+@require_POST
 def delete_victim(request):
     if request.method == 'POST':
         victim_id = request.POST.get('victim_id')
@@ -799,40 +969,6 @@ def delete_parent(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
 
-@require_POST
-def update_status(request):
-    case_id = request.POST.get('case_id')
-    status_text = request.POST.get('status_text')
-    status_date = request.POST.get('status_date')
-    
-    # Retrieve the Case object
-    case = Case.objects.get(id=case_id)
-    
-    # Update the status fields
-    if status_text:
-        status_text = status_text.capitalize()
-        case.status_description = status_text
-    if status_date:
-        case.status_date = status_date
-    case.save()  # Save the changes
-    
-    # Return the updated status as JSON response
-    return JsonResponse({'status_description': status_text, 'status_date': status_date})
-
-@require_POST
-def update_status_case(request):
-    case_id = request.POST.get('case_id')
-    status = request.POST.get('status_case')
-
-    print (status)
-
-    # Update the status for the given case_id
-    case = Case.objects.get(id=case_id)
-    case.status = status
-    case.save()
-
-    # Return success response
-    return JsonResponse({'status': 'success'})
 
 def process_incident_form(request):
     if request.method == 'POST':
@@ -904,6 +1040,67 @@ def process_incident_form(request):
             'message': 'Invalid request method.'
         }
         return JsonResponse(response_data)
+
+
+def add_status(request, case_id):
+    if request.method == 'POST':
+        try:
+            # Retrieve the case object based on the case_id
+            case = Case.objects.get(id=case_id)
+            
+            # Extract status description from the POST data
+            status_description = request.POST.get('status_text')
+
+            # Create a new Status_History object
+            status_history = Status_History.objects.create(
+                case_status_history=case,
+                status_description=status_description,
+                status_date_added=timezone.now()
+            )
+
+            # Return success response
+            return JsonResponse({'success': True, 'message': 'Status added successfully'})
+
+        except Case.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Case not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+def edit_status(request, status_id):
+    if request.method == 'GET':
+        try:
+            status = Status_History.objects.get(id=status_id)
+            return JsonResponse({'success': True, 'status_description': status.status_description})
+        except Status_History.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Status not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    elif request.method == 'POST':
+        try:
+            status = Status_History.objects.get(id=status_id)
+            new_description = request.POST.get('new_description')
+            status.status_description = new_description
+            status.save()
+            return JsonResponse({'success': True, 'message': 'Status updated successfully'})
+        except Status_History.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Status not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+
+def delete_status(request, status_id):
+    if request.method == 'POST':
+        try:
+            status = Status_History.objects.get(id=status_id)
+            status.delete()
+            return JsonResponse({'success': True, 'message': 'Status deleted successfully'})
+        except Status_History.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Status not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
 
 def tite(request):
