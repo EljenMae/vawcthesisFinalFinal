@@ -1,2 +1,3 @@
 
 vawc/db.sqlite3
+*.pyc
