@@ -8,7 +8,15 @@
 {% endblock %}
 {% block content %}
 <div class="container-fluid pb-4">
-    <h1 class="pt-3">Case</h1>
+    <div class="row d-flex justify-content-between">
+        <div class="col-auto">
+            <h1>Case</h1>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#add_case"><i class="bx bx-plus"></i> Add Case</button>
+        </div>
+    </div>
+
     <div class="row mt-4">
         <div class="col-lg-3 mb-lg-0 mb-3 ">
             <div class="input-group search-keyword">
@@ -71,16 +79,110 @@
                     </td>
                     <td>{{ case.status }}</td>
                     <td>{{ case.date_added|date:"m/d/Y" }}</td>
-                    <td class="text-center"><a class="btn btn-outline-success" href="{% url 'barangay case view' case_id=case.id %}" role="button">View</a></td>
+                    <td class="text-center">
+                        {% if case.type_of_case == 'Impacted' %}
+                            <a class="btn btn-outline-success" href="{% url 'barangay case impacted view' case_id=case.id %}" role="button">View</a>
+                        {% elif case.type_of_case == 'Behalf' %}
+                            <a class="btn btn-outline-success" href="{% url 'barangay case behalf view' case_id=case.id %}" role="button">View</a>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center">No cases found</td>
+                    <td></td>
+                    <td></td>
+                    <td>No cases found</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div><!--end of div of table-->
+</div>
+<!-- Add the toast container to your HTML, make sure it's placed in a suitable location -->
+<div class="toast-container position-fixed top-0 end-0 p-3 text-light">
+    <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header text-dark" style="background-color:#899499;">
+            <img src="{% static 'img/ecs-no-bg-2.png' %}" class="rounded me-2" alt="..." style="width:20px;">
+            <strong class="me-auto text-dark">Success</strong>
+            <small>Just Now</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-dark">
+        </div>
+    </div>
+    <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header text-dark" style="background-color:#899499;">
+            <img src="{% static 'img/ecs-no-bg-2.png' %}" class="rounded me-2" alt="..." style="width:20px;">
+            <strong class="me-auto text-dark">Error</strong>
+            <small>Just Now</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-dark">
+        </div>
+    </div>
+</div>
+<!-- Modal add case -->
+<div class="modal fade" id="add_case" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header  border-bottom ">
+                <h5 class="modal-title">Add Case</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="add_case_form" action="{% url 'add_new_case' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="status_case" value="Active">
+                <div class="modal-body">
+                    <div class="form-floating mb-2">
+                        <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" >
+                        <label for="email">Email</label>
+                    </div>
+                    <div class="row d-flex justify-content-start align-items-center ps-1">
+                        <div class="col-4">
+                            <h5>Type of Case:</h5>
+                        </div>
+                        <div class="col">
+                            <div class="d-grid">
+                                <input type="radio" class="btn-check btn-check-update" name="case_type" value="Impacted" id="Impacted" autocomplete="off" data-status="Impacted" checked>
+                                <label class="btn btn-outline-primary mx-2" for="Impacted">Impacted</label>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-grid">
+                                <input type="radio" class="btn-check btn-check-update" name="case_type" value="Behalf" id="Behalf" autocomplete="off"  data-status="Behalf">
+                                <label class="btn btn-outline-primary" for="Behalf">Behalf</label>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row d-flex align-items-center ps-1">
+                        <div class="col-4">
+                            <h5>Type of Service:</h5>
+                        </div>
+                        <div class="col-4">
+                            <div class="d-grid">
+                                <input type="radio" class="btn-check btn-check-update btn-block" name="service_type" value="crisis" id="crisis" autocomplete="off" data-status="crisis" checked>
+                                <label class="btn btn-outline-primary mx-2" for="crisis">Crisis</label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="d-grid">
+                                <input type="radio" class="btn-check btn-check-update btn-block" name="service_type" value="issuance" id="issuance" autocomplete="off"  data-status="issuance">
+                                <label class="btn btn-outline-primary" for="issuance">Issuance</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="addCaseBtn">Add Case</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock content %}
 {% block scripts %}
@@ -111,6 +213,59 @@
         $('select#status').on('change', function(e){
             var status = $(this).val();
             $('#table-case').DataTable().columns([3]).search(status).draw();
+        });
+
+        $('#addCaseBtn').click(function(e) {
+            e.preventDefault();  // Prevent default form submission
+
+            // Serialize form data
+            var formData = $('#add_case_form').serialize();
+
+            // Send AJAX POST request
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'add_new_case' %}',  // Replace with your actual URL for adding new case
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        // Redirect based on type_of_case from the response
+                        var caseId = response.case_id;
+                        var typeOfCase = response.type_of_case;
+                        if (typeOfCase === 'Impacted') {
+                            // Display success toast
+                            $('.toast-body').text('Case (Impcated Victim) added successfully');
+                            $('#successToast').toast('show');
+                            
+                            // Close modal after 2 seconds
+                            setTimeout(function() {
+                                $('#add_case').modal('hide'); // Close modal
+                                window.location.href = '/admin-barangay-vawc/view-case/impacted/' + caseId + '/';
+                            }, 2000);
+                            
+                        } else if (typeOfCase === 'Behalf') {
+                            // Display success toast
+                            $('.toast-body').text('Case (Behalf of Impacted Victim) added successfully');
+                            $('#successToast').toast('show');
+                            
+                            // Close modal after 2 seconds
+                            setTimeout(function() {
+                                $('#add_case').modal('hide'); // Close modal
+                                window.location.href = '/admin-barangay-vawc/view-case/behalf/' + caseId + '/';
+                            }, 2000);
+                            
+                        } else {
+                            // Handle other cases or errors
+                        }
+                    } else {
+                        // Handle error response
+                        console.log(response.error);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle AJAX error
+                    console.error(xhr.responseText);
+                }
+            });
         });
     });
 </script>

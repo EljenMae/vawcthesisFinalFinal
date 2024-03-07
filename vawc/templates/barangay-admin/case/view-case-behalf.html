@@ -1,0 +1,2606 @@
+{% extends "../../base/base_barangay.html" %}
+{% block title %}Report | View Case {% endblock %}
+{% load static %}
+{% block styles %}
+<link href='https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css' rel='stylesheet'>
+<link href='https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css' rel='stylesheet'>
+<style>
+
+</style>
+{% endblock %}
+{% block content %}
+<div class="container-fluid pb-4">
+    <div class="pt-1 row">
+        <a class="col text-decoration-none text-dark" href="{% url 'barangay case' %}" role="button"><i class='bx bx-arrow-back'></i> Back</a>
+    </div>
+    <div class="d-flex justify-content-between">
+        <h2>Case Number: {{ case.case_number }} <span class="h5">(Date Added:{{ case.date_added }})</span>  </h2>
+        <p>{{global.security_status}}</p>
+        <button class="btn btn-danger btn-confirm-delete-case" data-case-id="{{ case.id }}" data-bs-toggle="modal" data-bs-target="#confirmDeletCase">
+            <i class='bx bx-trash me-2'></i>
+            Delete Case
+        </button>
+    </div>
+    <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+          <button class="nav-link custom-tab text-dark fs-4" id="nav-status-tab" data-bs-toggle="tab" data-bs-target="#nav-status" type="button" role="tab" aria-controls="nav-status" aria-selected="true">Status</button>
+          <button class="nav-link custom-tab text-dark fs-4" id="nav-victim-tab" data-bs-toggle="tab" data-bs-target="#nav-victim" type="button" role="tab" aria-controls="nav-victim" aria-selected="false">Victim</button>
+          <button class="nav-link custom-tab text-dark fs-4" id="nav-contact_pers-tab" data-bs-toggle="tab" data-bs-target="#nav-contact_pers" type="button" role="tab" aria-controls="nav-contact_pers" aria-selected="false">Contact Person</button>
+          <button class="nav-link custom-tab text-dark fs-4" id="nav-perpetrator-tab" data-bs-toggle="tab" data-bs-target="#nav-perpetrator" type="button" role="tab" aria-controls="nav-perpetrator" aria-selected="false">Perpetrator</button>
+          <button class="nav-link custom-tab text-dark fs-4" id="nav-incident-tab" data-bs-toggle="tab" data-bs-target="#nav-incident" type="button" role="tab" aria-controls="nav-incident" aria-selected="false">Incident</button>
+        </div>
+    </nav>
+    <div class="tab-content" id="nav-tabContent">
+        <div class="tab-pane fade" id="nav-status" role="tabpanel" aria-labelledby="nav-status">
+            <div class="container-fluid">
+                <div class="d-flex justify-content-between py-3">
+                    <h2>Status</h2>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#statusAdd"><i class="bx bx-plus"></i> Add Status</button>
+                </div><!--end of row-->
+
+                <div class="pt-2">
+                    <div class="card shadow-lg rounded border border-dark border-1 border-opacity-10">
+                        <div class="card-body card-status">
+                            {% if latest_status_history %}
+                                <span id="case-status-desc" class="fs-5">
+                                    {{ latest_status_history.status_description }}
+                                </span>
+                                <br>
+                                <span id="case-status-date">{{ latest_status_history.status_date_added|date:"F j, Y" }} at {{ latest_status_history.status_date_added|time:"g:i A" }}</span>
+                            {% else %}
+                                <span id="case-status-desc" class="fs-5">
+                                    No Status Yet.
+                                </span>
+                                <br>
+                                <span id="case-status-date"></span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div><!--end of status box-->
+
+                <div class="container pt-1">
+                    <table class="table table-striped nowrap" id="table-status" style="width:100%">
+                        <thead class="border-bottom border-dark border-2 border-opacity-50">
+                            <tr>
+                                <th scope="col" class="col-2">Date of Status Added</th>
+                                <th scope="col" class="col-8">Status Description</th>
+                                <th class="text-center col-2" scope="col" >View</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            {% for status_history in status_histories %}
+                            <tr class="border-bottom border-2">
+                                <td>{{ status_history.status_date_added }}</td>
+                                <td>{{ status_history.status_description }}</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-success btn-sm me-2" id="btn-edit-status-hist" data-status-id="{{ status_history.id }}">Edit</button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="btn-delete-status-hist" data-status-id="{{ status_history.id }}">Delete</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr class="border-bottom border-2">
+                                <td class="text-center"></td>
+                                <td class="text-start">No Status Yet.</td>
+                                <td class="text-center"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div><!--end of div of table-->
+
+                <br>
+                <div class="container pt-3">
+                    <div class="d-flex align-items-center">
+                        <h4><strong>CASE STATUS:</strong></h4>
+                        <input type="radio" class="btn-check btn-check-update" name="status_case" value="Active" id="option1" autocomplete="off" {% if case.status == 'Active' %}checked{% endif %} data-status="Active">
+                        <label class="btn btn-outline-primary mx-2" for="option1">Active</label>
+
+                        <input type="radio" class="btn-check btn-check-update" name="status_case" value="Close" id="option2" autocomplete="off" {% if case.status == 'Close' %}checked{% endif %} data-status="Close">
+                        <label class="btn btn-outline-primary" for="option2">Closed</label>
+                    </div>
+                </div><!--end of container-->
+                <div class="container pt-3 pb-3">
+                    <div class="row">
+                        <div class="col-lg-11 col-md-11 col-sm-8">
+                            <h3>Warrantless Arrest</h3>
+                        </div><!--end of col-->
+                        <div class="col-lg-1 col-md-1 col-sm-8">
+                            <!-- Button trigger modal -->
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#warrantlessArrest">
+                                Send
+                            </button>
+                        </div><!--end of col-->
+                    </div><!--end of row-->
+                </div><!--end of container-->
+                <hr>
+                <div class="container pt-2 pb-3">
+                    <h1 class="text-center">Case Information</h1>
+                    <div class="pt-2">
+                        <div class="row">
+                            <div class="d-flex align-items-center">
+                                <h5>Case Type:</h5>
+                                {% if case.type_of_case == 'Impacted' %}
+                                    <h5 class="lead">Impacted Victim</h5>
+                                {% elif case.type_of_case == 'Behalf' %}
+                                    <h5 class="lead">Reporting on Behalf of Impacted Victim</h5>
+                                {% endif %}
+                            </div><!--end of col-->
+                        </div><!--end of row-->
+                        <div class="row">
+                            <div class="d-flex align-items-center">
+                                <h5>Service Type:</h5>
+                                {% if case.service_information == 'crisis' %}
+                                    <h5 class="lead">Crisis Intervention Including Rescue</h5>
+                                {% elif case.service_information == 'issuance' %}
+                                    <h5 class="lead">Issuance / Enforcement of Barangay Protection Order</h5>
+                                {% endif %}
+                            </div><!--end of col-->
+                        </div><!--end of row-->
+
+                        <div class="row">
+                            <div class="d-flex align-items-center">
+                                <h5>Email:</h5>
+                                <h5 class="lead"> {{ case.email }}</h5>
+                            </div><!--end of col-->
+                        </div><!--end of row-->
+
+                        <div class="row pt-5">
+                            <div class="col-lg-10 col-md-10 col-sm-8">
+                                <h5>Referred:</h5>
+                            </div><!--end of col-->
+                            <div class="col-lg-2 col-md-2 col-sm-8">
+                                <a class="btn btn-primary" href="#" role="button">Add Referral</a>
+                            </div><!--end of col-->
+                        </div><!--end of row-->
+
+                       <!--table-->
+                        <div class="pt-4 table-responsive-lg table-responsive-md table-responsive-sm">
+                            <table class="table table-hover">
+                                <tbody>
+                                    <tr class="border-bottom border-2">
+                                    <th>PNP</th>
+                                    <td>September 12, 2023</td>
+                                    <td class="text-center"><a class="btn btn-outline-success" href="#" role="button">View More</a></td>
+                                    </tr>
+                                    <tr class="border-bottom border-2">
+                                    <th>Social Welfare</th>
+                                    <td>September 12, 2023</td>
+                                    <td class="text-center"><a class="btn btn-outline-success" href="#" role="button">View More</a></td>
+                                    </tr>
+                                </tbody>
+                            </table><!--end of table-->
+                        </div><!--end of div of table-->
+                    </div><!--end of container-->
+                </div>
+
+            </div><!--end of container-->
+
+        </div> <!--end of div of status tab-->
+
+        <div class="tab-pane fade" id="nav-victim" role="tabpanel" aria-labelledby="nav-victim">
+            <h2 class="pt-3 text-center">VICTIM SURVIVOR INFORMATION</h2>
+            <div class="d-flex align-items-start mt-3">
+                <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    {% for victim in victims %}
+                        {% if forloop.first %}
+                            <button class="nav-link custom-nav-link active mb-2" id="v-pills-victim-{{ forloop.counter }}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-victim-{{ forloop.counter }}" type="button" role="tab" aria-controls="v-pills-victim-{{ forloop.counter }}" aria-selected="true">Victim No. {{ forloop.counter }}</button>
+                        {% else %}
+                            <button class="nav-link custom-nav-link mb-2" id="v-pills-victim-{{ forloop.counter }}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-victim-{{ forloop.counter }}" type="button" role="tab" aria-controls="v-pills-victim-{{ forloop.counter }}" aria-selected="false">Victim No. {{ forloop.counter }}</button>
+                        {% endif %}
+                    {% endfor %}
+                    <hr>
+                    <button class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#addVictimModal">
+                        <i class="bx bx-plus-circle" style="vertical-align: middle;"></i>
+                        <span>Add Victim</span>
+                    </button>
+                </div>
+                <div class="tab-content flex-grow-1" id="v-pills-tabContent">
+                {% if victims %}
+                    {% for victim in victims %}
+                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %} h-100" id="v-pills-victim-{{ forloop.counter }}" role="tabpanel" aria-labelledby="v-pills-victim-{{ forloop.counter }}-tab" tabindex="0">
+                        <div class="container-fluid h-100">
+                            <div class="d-flex justify-content-between mb-3">
+                                <a href="{% url 'add_parent' case_id=case.id victim_id=victim.id %}" class="btn btn-primary me-2">
+                                    <i class='bx bx-body'></i>
+                                    <span>Add, View, or Delete Parent/s</span>
+                                </a>
+                                <button class="btn btn-danger me-2 btn-confirm-delete-victim" data-victim-id="{{ victim.id }}" data-bs-toggle="modal" data-bs-target="#confirmVictimDelete">
+                                    <i class='bx bx-trash'></i>
+                                    <span>Delete Victim</span>
+                                </button>
+                            </div>
+                            <form id="victim_form_{{ victim.id }}">
+                                {% csrf_token %}
+                                <div class="h-100">
+                                    <div class="row">
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="victim_first_name_{{ victim.id }}" name="victim_first_name_{{ victim.id }}" value="{{ victim.first_name }}">
+                                                <label for="victim_first_name_{{ victim.id }}">First Name</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="victim_middle_name_{{ victim.id }}" name="victim_middle_name_{{ victim.id }}" value="{{ victim.middle_name }}">
+                                                <label for="victim_middle_name_{{ victim.id }}">Middle Name</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="victim_last_name_{{ victim.id }}" name="victim_last_name_{{ victim.id }}" value="{{ victim.last_name }}">
+                                                <label for="victim_last_name_{{ victim.id }}">Last Name</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="victim_suffix_name_{{ victim.id }}" name="victim_suffix_name_{{ victim.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="none" {% if victim.suffix == 'none' %}selected{% endif %}>N/A</option>
+                                                        <option value="sr" {% if victim.suffix == 'sr' %}selected{% endif %}>Sr</option>
+                                                        <option value="jr" {% if victim.suffix == 'jr' %}selected{% endif %}>Jr</option>
+                                                        <option value="ii" {% if victim.suffix == 'ii' %}selected{% endif %}>II</option>
+                                                        <option value="iii" {% if victim.suffix == 'iii' %}selected{% endif %}>III</option>
+                                                        <option value="iv" {% if victim.suffix == 'iv' %}selected{% endif %}>IV</option>
+                                                    {% else %}
+                                                        <option value="ii" selected >{{ victim.suffix }}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="victim_suffix_name_{{ victim.id }}">Suffix</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="victim_sex_{{ victim.id }}" name="victim_sex_{{ victim.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                    <option value="Male" {% if victim.sex == 'Male' %}selected{% endif %}>Male</option>
+                                                    <option value="Female" {% if victim.sex == 'Female' %}selected{% endif %}>Female</option>
+                                                    {% else %}
+                                                        <option value="Female" selected>:{{ victim.sex }}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="victim_sex_{{ victim.id }}">Suffix</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="victim_type_of_disability_{{ victim.id }}" name="victim_type_of_disability_{{ victim.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="none" {% if victim.type_of_disability == 'none' %}selected{% endif %}>N/A</option>
+                                                        <option value="With Disability" {% if victim.type_of_disability == 'With Disability' %}selected{% endif %}>With Disability</option>
+                                                        <option value="Permanent Disability" {% if victim.type_of_disability == 'Permanent Disability' %}selected{% endif %}>Permanent Disability</option>
+                                                        <option value="Temporary Disability" {% if victim.type_of_disability == 'Temporary Disability' %}selected{% endif %}>Temporary Disability</option>
+                                                    {% else %}
+                                                       <option value="Temporary Disability" selected>{{victim.type_of_disability}}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="victim_type_of_disability_{{ victim.id }}">Type of Disability</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+
+                                                {% if global.security_status == "decrypted" %}
+                                                    <input type="date" class="form-control" id="victim_date_of_birth_{{ victim.id }}" name="victim_date_of_birth_{{ victim.id }}" value="{{ victim.date_of_birth|date:'Y-m-d' }}">
+                                                {% else %}
+                                                    <input type="date" class="form-control" id="victim_date_of_birth_{{ victim.id }}" name="victim_date_of_birth_{{ victim.id }}" value="2000-01-01" disabled>
+                                                {% endif %}
+
+                                                <label for="victim_date_of_birth_{{ victim.id }}">Date of Birth: </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="victim_civil_status_{{ victim.id }}" name="victim_civil_status_{{ victim.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="single" {% if victim.civil_status == 'none' %}selected{% endif %}>Single</option>
+                                                        <option value="married" {% if victim.civil_status == 'married' %}selected{% endif %}>Married</option>
+                                                        <option value="live-in" {% if victim.civil_status == 'live-in' %}selected{% endif %}>Live-In</option>
+                                                        <option value="widowed" {% if victim.civil_status == 'widowed' %}selected{% endif %}>Widowed</option>
+                                                        <option value="separated" {% if victim.civil_status == 'separated' %}selected{% endif %}>Separated</option>
+                                                    {% else %}
+                                                        <option value="separated" selected>{{victim.civil_status}}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="victim_civil_status_{{ victim.id }}">Civil Status</label>
+                                              </div>
+                                        </div><!--End of col-->
+                                    </div><!--End of row-->
+                                    <div class="row">
+                                        <!--contact num-->
+                                        <div class="col-lg-6 col-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="number" class="form-control" id="victim_contact_number_{{ victim.id }}" name="victim_contact_number_{{ victim.id }}" value="{{ victim.contact_number }}">
+                                                <label for="victim_contact_number_{{ victim.id }}">Contact Number</label>
+                                            </div>
+                                        </div>
+
+                                        <!--telephone num-->
+                                        <div class="col-lg-6 col-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="number" class="form-control" id="victim_telephone_number_{{ victim.id }}" name="victim_telephone_number_{{ victim.id }}" value="{{ victim.telephone_number }}">
+                                                <label for="victim_telephone_number_{{ victim.id }}">Telephone Number</label>
+                                            </div>
+                                        </div>
+
+                                    </div><!--End of row-->
+                                    <div class="row">
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="victim_educational_attainment_{{ victim.id }}" name="victim_educational_attainment_{{ victim.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="none"{% if victim.educational_attainment == 'none' %}selected{% endif %}>None</option>
+                                                        <option value="highschool"{% if victim.educational_attainment == 'highschool' %}selected{% endif %}>High School Level</option>
+                                                        <option value="vocational"{% if victim.educational_attainment == 'vocational' %}selected{% endif %}>Vocational</option>
+                                                        <option value="collegeLevel"{% if victim.educational_attainment == 'collegeLevel' %}selected{% endif %}>College Level</option>
+                                                        <option value="post-grad"{% if victim.educational_attainment == 'post-grad' %}selected{% endif %}>Post Graduated</option>
+                                                        <option value="no-response"{% if victim.educational_attainment == 'no-response' %}selected{% endif %}>No Response</option>
+                                                        <option value="educt-others"{% if victim.educational_attainment == 'educt-others' %}selected{% endif %}>Others</option>
+                                                    {% else %}
+                                                        <option value="educt-others"selected>{{victim.educational_attainment}}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="victim_educational_attainment_{{ victim.id }}">Highest Educational Attainment</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 mb-3">
+                                            
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="victim_occupation_{{ victim.id }}" name="victim_occupation_{{ victim.id }}" value="{{ victim.occupation}}">
+                                                <label for="victim_occupation_{{ victim.id }}">Occupation</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="victim_nationality_{{ victim.id }}" name="victim_nationality_{{ victim.id }}" value="{{ victim.nationality }}">
+                                                <label for="victim_nationality_{{ victim.id }}">Nationality</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="victim_religion_{{ victim.id }}" name="victim_religion_{{ victim.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="none" {% if victim.religion == 'none' %}selected{% endif %}>None</option>
+                                                        <option value="roman-catholic" {% if victim.religion == 'roman-catholic' %}selected{% endif %}>Roman Catholic</option>
+                                                        <option value="islam" {% if victim.religion == 'islam' %}selected{% endif %}>Islam</option>
+                                                        <option value="protestant" {% if victim.religion == 'protestant' %}selected{% endif %}>Protestant</option>
+                                                        <option value="iglesia-ni-kristo" {% if victim.religion == 'iglesia-ni-kristo' %}selected{% endif %}>Iglesia ni Kristo</option>
+                                                        <option value="aglipayan" {% if victim.religion == 'aglipayan' %}selected{% endif %}>Aglipayan</option>
+                                                        <option value="other-religion" {% if victim.religion == 'other-religion' %}selected{% endif %}>Others</option>
+                                                    {% else %}
+                                                        <option value="other-religion" selected>{{victim.religion}}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="victim_religion_{{ victim.id }}">Religion</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                    </div><!--End of row-->
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-4 col-sm-8">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="victim_house_information_{{ victim.id }}" name="victim_house_information_{{ victim.id }}" value="{{ victim.house_information }}">
+                                                <label for="victim_house_information_{{ victim.id }}">House Information</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 col-md-4 col-sm-8">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="victim_street_{{ victim.id }}" name="victim_street_{{ victim.id }}" value="{{ victim.street }}">
+                                                <label for="victim_street_{{ victim.id }}">Street</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 col-md-4 col-sm-8">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="victim_barangay_{{ victim.id }}" name="victim_barangay_{{ victim.id }}" value="{{ victim.barangay }}">
+                                                <label for="victim_barangay_{{ victim.id }}">Barangay</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                    </div><!--End of row-->
+                                    <div class="row">
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="victim_province_{{ victim.id }}" name="victim_province_{{ victim.id }}" value="{{ victim.province }}">
+                                                <label for="victim_province_{{ victim.id }}">Province</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 col-12">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="victim_city_{{ victim.id }}" name="victim_city_{{ victim.id }}" value="{{ victim.city }}">
+                                                <label for="victim_city_{{ victim.id }}">City</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-6 col-12">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="victim_region_{{ victim.id }}" name="victim_region_{{ victim.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="region-I" {% if victim.region == 'region-I' %}selected{% endif %}>Region I – Ilocos Region</option>
+                                                        <option value="region-II" {% if victim.region == 'region-II' %}selected{% endif %}>Region II – Cagayan Valley</option>
+                                                        <option value="region-III" {% if victim.region == 'region-III' %}selected{% endif %}>Region III – Central Luzon</option>
+                                                        <option value="region-IV" {% if victim.region == 'region-IV' %}selected{% endif %}>Region IV‑A – CALABARZON</option>
+                                                        <option value="mimaropa" {% if victim.region == 'mimaropa' %}selected{% endif %}>MIMAROPA Region</option>
+                                                        <option value="region-V" {% if victim.region == 'region-V' %}selected{% endif %}>Region V – Bicol Region</option>
+                                                        <option value="region-VI" {% if victim.region == 'region-VI' %}selected{% endif %}>Region VI – Western Visayas</option>
+                                                        <option value="region-VII" {% if victim.region == 'region-VII' %}selected{% endif %}>Region VII – Central Visayas</option>
+                                                        <option value="region-VIII" {% if victim.region == 'region-VIII' %}selected{% endif %}>Region VIII – Eastern Visayas</option>
+                                                        <option value="region-IX" {% if victim.region == 'region-IX' %}selected{% endif %}>Region IX – Zamboanga Peninsula</option>
+                                                        <option value="region-X" {% if victim.region == 'region-X' %}selected{% endif %}>Region X – Northern Mindanao</option>
+                                                        <option value="region-XI" {% if victim.region == 'region-XI' %}selected{% endif %}>Region XI – Davao Region</option>
+                                                        <option value="region-XII" {% if victim.region == 'region-XII' %}selected{% endif %}>Region XII – SOCCSKSARGEN</option>
+                                                        <option value="region-XIII" {% if victim.region == 'region-XIII' %}selected{% endif %}>Region XIII – Caraga</option>
+                                                        <option value="ncr" {% if victim.region == 'ncr' %}selected{% endif %}>NCR – National Capital Region</option>
+                                                        <option value="car" {% if victim.region == 'car' %}selected{% endif %}>CAR – Cordillera Administrative Region</option>
+                                                        <option value="barmm" {% if victim.region == 'barmm' %}selected{% endif %}>BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                                    {% else %}
+                                                        <option value="barmm" selected>{{victim.region}}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="victim_region_{{ victim.id }}">Region</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end mt-lg-2 mt-2">
+                                    <button class="btn btn-primary save-btn-victim_{{ victim.id }}" id="save-btn-victim" type="submit">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="tab-pane fade show active h-100" id="v-pills-no-victim" role="tabpanel" aria-labelledby="v-pills-no-victim-tab" tabindex="0">
+                    <div class="card border border-dark border-1 border-opacity-10 shadow-lg">
+                        <div class="card-body text-center">
+                          No Victim Information Yet. 
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                </div>
+            </div>
+        </div> <!--end of div of victim tab-->
+        <div class="tab-pane fade" id="nav-contact_pers" role="tabpanel" aria-labelledby="nav-contact_pers">
+            <h2 class="pt-3 text-center">CONTACT PERSON INFORMATION</h2>
+            {% if contact_persons  %}
+                {% for contact_person in contact_persons  %}
+                <form id="contact_person_form_{{ contact_person.id }}">
+                    <div class="row pt-5">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_first_name_{{ contact_person.id }}" name="contact_person_first_name_{{ contact_person.id }}" value="{{ contact_person.first_name }}">
+                                <label for="contact_person_first_name_{{ contact_person.id }}">First Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_middle_name_{{ contact_person.id }}" name="contact_person_middle_name_{{ contact_person.id }}" value="{{ contact_person.middle_name }}">
+                                <label for="contact_person_middle_name_{{ contact_person.id }}">Middle Name</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_last_name_{{ contact_person.id }}" name="contact_person_last_name_{{ contact_person.id }}" value="{{ contact_person.last_name }}">
+                                <label for="contact_person_last_name_{{ contact_person.id }}">Last Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="contact_person_suffix_name_{{ contact_person.id }}" name="contact_person_suffix_name_{{ contact_person.id }}">
+                                    {% if global.security_status == "decrypted" %}
+                                        <option value="none" {% if contact_person.suffix == 'none' %}selected{% endif %}>N/A</option>
+                                        <option value="sr" {% if contact_person.suffix == 'sr' %}selected{% endif %}>Sr</option>
+                                        <option value="jr" {% if contact_person.suffix == 'jr' %}selected{% endif %}>Jr</option>
+                                        <option value="ii" {% if contact_person.suffix == 'ii' %}selected{% endif %}>II</option>
+                                        <option value="iii" {% if contact_person.suffix == 'iii' %}selected{% endif %}>III</option>
+                                        <option value="iv" {% if contact_person.suffix == 'iv' %}selected{% endif %}>IV</option>
+                                    {% else %}
+                                        <option value="ii" selected >{{ contact_person.suffix }}</option>
+                                    {% endif %}
+                                </select>
+                                <label for="contact_person_suffix_name_{{ contact_person.id }}">Suffix</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+
+                    <div class="row pt-2">
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_relationship_{{ contact_person.id }}" name="contact_person_relationship_{{ contact_person.id }}" value="{{ contact_person.relationship }}">
+                                <label for="contact_person_relationship_{{ contact_person.id }}">Relationship to the Victim/s</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_contact-number_{{ contact_person.id }}" name="contact_person_contact-number_{{ contact_person.id }}" value="{{ contact_person.contact_number }}">
+                                <label for="contact_person_contact-number_{{ contact_person.id }}">Contact No.</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_contact-tel_{{ contact_person.id }}" name="contact_person_contact-tel_{{ contact_person.id }}" value="{{ contact_person.telephone_number }}">
+                                <label for="contact_person_contact-tel_{{ contact_person.id }}">Telephone No.</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_street_{{ contact_person.id }}" name="contact_person_contact-street_{{ contact_person.id }}" value="{{ contact_person.street }}">
+                                <label for="contact_person_street_{{ contact_person.id }}">Street</label>
+                            </div>
+                        </div><!--end of col-->
+                    </div><!--end of row-->
+
+                    <div class="row pt-2 pb-3">
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_barangay_{{ contact_person.id }}" name="contact_person_barangay_{{ contact_person.id }}" value="{{ contact_person.barangay }}">
+                                <label for="contact_person_barangay_{{ contact_person.id }}">Barangay</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_city_{{ contact_person.id }}" name="contact_person_city_{{ contact_person.id }}" value="{{ contact_person.city }}">
+                                <label for="contact_person_city_{{ contact_person.id }}">City</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_province_{{ contact_person.id }}" name="contact_person_province_{{ contact_person.id }}" value="{{ contact_person.province }}">
+                                <label for="contact_person_province_{{ contact_person.id }}">Province</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <select class="form-select" id="contact_person_region_{{ contact_person.id }}" name="contact_person_region_{{ contact_person.id }}">
+                                    {% if global.security_status == "decrypted" %}
+                                        <option value="region-I" {% if contact_person.region == 'region-I' %}selected{% endif %}>Region I – Ilocos Region</option>
+                                        <option value="region-II" {% if contact_person.region == 'region-II' %}selected{% endif %}>Region II – Cagayan Valley</option>
+                                        <option value="region-III" {% if contact_person.region == 'region-III' %}selected{% endif %}>Region III – Central Luzon</option>
+                                        <option value="region-IV" {% if contact_person.region == 'region-IV' %}selected{% endif %}>Region IV‑A – CALABARZON</option>
+                                        <option value="mimaropa" {% if contact_person.region == 'mimaropa' %}selected{% endif %}>MIMAROPA Region</option>
+                                        <option value="region-V" {% if contact_person.region == 'region-V' %}selected{% endif %}>Region V – Bicol Region</option>
+                                        <option value="region-VI" {% if contact_person.region == 'region-VI' %}selected{% endif %}>Region VI – Western Visayas</option>
+                                        <option value="region-VII" {% if contact_person.region == 'region-VII' %}selected{% endif %}>Region VII – Central Visayas</option>
+                                        <option value="region-VIII" {% if contact_person.region == 'region-VIII' %}selected{% endif %}>Region VIII – Eastern Visayas</option>
+                                        <option value="region-IX" {% if contact_person.region == 'region-IX' %}selected{% endif %}>Region IX – Zamboanga Peninsula</option>
+                                        <option value="region-X" {% if contact_person.region == 'region-X' %}selected{% endif %}>Region X – Northern Mindanao</option>
+                                        <option value="region-XI" {% if contact_person.region == 'region-XI' %}selected{% endif %}>Region XI – Davao Region</option>
+                                        <option value="region-XII" {% if contact_person.region == 'region-XII' %}selected{% endif %}>Region XII – SOCCSKSARGEN</option>
+                                        <option value="region-XIII" {% if contact_person.region == 'region-XIII' %}selected{% endif %}>Region XIII – Caraga</option>
+                                        <option value="ncr" {% if contact_person.region == 'ncr' %}selected{% endif %}>NCR – National Capital Region</option>
+                                        <option value="car" {% if contact_person.region == 'car' %}selected{% endif %}>CAR – Cordillera Administrative Region</option>
+                                        <option value="barmm" {% if contact_person.region == 'barmm' %}selected{% endif %}>BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                    {% else %}
+                                        <option value="barmm" selected>{{contact_person.region}}</option>
+                                    {% endif %}
+                                
+                                </select>
+                                <label for="contact_person_region_{{ contact_person.id }}">Region</label>
+                            </div>
+                        </div><!--End of col-->
+
+                    </div><!--end of row-->
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-primary save-btn-contact_person_{{ contact_person.id }}" type="submit">Save</button>
+                    </div>
+                </form>
+                {% endfor %}
+            {% else %}
+            <div class="card border border-dark border-1 border-opacity-10 shadow-lg">
+                <div class="container card-body text-center">
+                  No Contact Person Information Yet.
+                  <br>
+                  <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addContactPersonModal">
+                    <i class="bx bx-plus-circle" style="vertical-align: middle;"></i> Add Contact Person
+                  </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="nav-perpetrator" role="tabpanel" aria-labelledby="nav-perpetrator">
+            <h2 class="pt-3 text-center">PERPETRATOR INFORMATION</h2>
+            <div class="d-flex align-items-start mt-3">
+                <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    {% for perpetrator in perpetrators %}
+                    {% if forloop.first %}
+                    <button class="nav-link custom-nav-link active mb-2" id="v-pills-perpetrator-{{ forloop.counter }}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-perpetrator-{{ forloop.counter }}" type="button" role="tab" aria-controls="v-pills-perpetrator-{{ forloop.counter }}" aria-selected="true">Perpetrator No. {{ forloop.counter }}</button>
+                    {% else %}
+                    <button class="nav-link custom-nav-link mb-2" id="v-pills-perpetrator-{{ forloop.counter }}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-perpetrator-{{ forloop.counter }}" type="button" role="tab" aria-controls="v-pills-perpetrator-{{ forloop.counter }}" aria-selected="false">Perpetrator No. {{ forloop.counter }}</button>
+                    {% endif %}
+                    {% endfor %}
+                    <hr>
+                    <button class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#addPerpModal">
+                        <i class="bx bx-plus-circle" style="vertical-align: middle;"></i>
+                        <span>Add Perpetrator</span>
+                    </button>
+                </div>
+                <div class="tab-content flex-grow-1" id="v-pills-tabContent">
+                {% if perpetrators %}
+                    {% for perpetrator in perpetrators %}
+                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %} h-100" id="v-pills-perpetrator-{{ forloop.counter }}" role="tabpanel" aria-labelledby="v-pills-perpetrator-{{ forloop.counter }}-tab" tabindex="0">
+                        <div class="container-fluid h-100">
+                            <div class="d-flex justify-content-between mb-3">
+                                <a href="{% url 'add_parent_perp' case_id=case.id perp_id=perpetrator.id %}" class="btn btn-primary me-2">
+                                    <i class='bx bx-body'></i>
+                                    <span>Add, View, or Delete Parent/s</span>
+                                </a>
+                                <button class="btn btn-danger btn-delete-perpetrator me-2" data-perpetrator-id="{{ perpetrator.id }}" data-bs-toggle="modal" data-bs-target="#confirmPerpetratorDelete">
+                                    <i class='bx bx-trash'></i>
+                                    <span>Delete Perpetrator</span>
+                                </button>
+                            </div>
+                            <form id="perpetrator_form_{{ perpetrator.id }}">
+                                {% csrf_token %}
+                                <div class="h-100">
+                                    <div class="row">
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="perpetrator_first_name_{{ perpetrator.id }}" name="perpetrator_first_name_{{ perpetrator.id }}" value="{{ perpetrator.first_name }}">
+                                                <label for="perpetrator_first_name_{{ perpetrator.id }}">First Name</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="perpetrator_middle_name_{{ perpetrator.id }}" name="perpetrator_middle_name_{{ perpetrator.id }}" value="{{ perpetrator.middle_name }}">
+                                                <label for="perpetrator_middle_name_{{ perpetrator.id }}">Middle Name</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="perpetrator_last_name_{{ perpetrator.id }}" name="perpetrator_last_name_{{ perpetrator.id }}" value="{{ perpetrator.last_name }}">
+                                                <label for="perpetrator_last_name_{{ perpetrator.id }}">Last Name</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="perpetrator_suffix_name_{{ perpetrator.id }}" name="perpetrator_suffix_name_{{ perpetrator.id }}">
+                                                    <option value="none" {% if perpetrator.suffix == 'none' %}selected{% endif %}>N/A</option>
+                                                    <option value="sr" {% if perpetrator.suffix == 'sr' %}selected{% endif %}>Sr</option>
+                                                    <option value="jr" {% if perpetrator.suffix == 'jr' %}selected{% endif %}>Jr</option>
+                                                    <option value="ii" {% if perpetrator.suffix == 'ii' %}selected{% endif %}>II</option>
+                                                    <option value="iii" {% if perpetrator.suffix == 'iii' %}selected{% endif %}>III</option>
+                                                    <option value="iv" {% if perpetrator.suffix == 'iv' %}selected{% endif %}>IV</option>
+                                                </select>
+                                                <label for="perpetrator_suffix_name_{{ perpetrator.id }}">Suffix</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="perpetrator_identifying_marks_{{ perpetrator.id }}" name="perpetrator_identifying_marks_{{ perpetrator.id }}" value="{{ perpetrator.identifying_marks }}">
+                                                <label for="perpetrator_identifying_marks_{{ perpetrator.id }}">Identifying Marks</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="perpetrator_alias_{{ perpetrator.id }}" name="perpetrator_alias_{{ perpetrator.id }}" value="{{ perpetrator.alias }}">
+                                                <label for="perpetrator_alias_{{ perpetrator.id }}">Alias</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-12 mb-3">
+                                            <div class="form-floating">
+                                                <select id="perp-relationship-victim_{{ perpetrator.id }}" name="perp-relationship-victim_{{ perpetrator.id }}" class="form-select">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="currentSpouse" {% if perpetrator.relationship_to_victim == 'currentSpouse' %}selected{% endif %}>Current spouse / partner</option>
+                                                        <option value="formerSpouse" {% if perpetrator.relationship_to_victim == 'formerSpouse' %}selected{% endif %}>Former spouse / partner</option>
+                                                        <option value="currentFiance" {% if perpetrator.relationship_to_victim == 'currentFiance' %}selected{% endif %}>Current fiance / dating relationship</option>
+                                                        <option value="formerFiance" {% if perpetrator.relationship_to_victim == 'formerFiance' %}selected{% endif %}>Former fiance / dating relationship</option>
+                                                        <option value="employer" {% if perpetrator.relationship_to_victim == 'employer' %}selected{% endif %}>Employer / manager / supervisor</option>
+                                                        <option value="agentOfEmployer" {% if perpetrator.relationship_to_victim == 'agentOfEmployer' %}selected{% endif %}>Agent of Employer</option>
+                                                        <option value="teacher" {% if perpetrator.relationship_to_victim == 'teacher' %}selected{% endif %}>Teacher / instructor / professor</option>
+                                                        <option value="coach" {% if perpetrator.relationship_to_victim == 'coach' %}selected{% endif %}>Coach / trainer</option>
+                                                        <option value="immediateFamily" {% if perpetrator.relationship_to_victim == 'immediateFamily' %}selected{% endif %}>Immediate family</option>
+                                                        <option value="otherRelatives" {% if perpetrator.relationship_to_victim == 'otherRelatives' %}selected{% endif %}>Other relatives</option>
+                                                        <option value="peopleOfAuthority" {% if perpetrator.relationship_to_victim == 'peopleOfAuthority' %}selected{% endif %}>People of authority / service provider</option>
+                                                        <option value="neighbors" {% if perpetrator.relationship_to_victim == 'neighbors' %}selected{% endif %}>Neighbors / peers / coworkers / classmates</option>
+                                                        <option value="stranger" {% if perpetrator.relationship_to_victim == 'stranger' %}selected{% endif %}>Stranger</option>
+                                                    {% else %}
+                                                        <option value="stranger" selected>{{perpetrator.relationship_to_victim}}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="perp-relationship-victim_{{ perpetrator.id }}" class="form-label">Relationship of Perpetrator to the Victim: </label>
+                                            </div>
+                                        </div><!--end of row-->
+                                        
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-3 form-floating mb-3">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="perpetrator_sex_{{ perpetrator.id }}" name="perpetrator_sex_{{ perpetrator.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="Male" {% if perpetrator.sex == 'Male' %}selected{% endif %}>Male</option>
+                                                        <option value="Female" {% if perpetrator.sex == 'Female' %}selected{% endif %}>Female</option>
+                                                    {% else %}
+                                                        <option value="Female" selected>{{ perpetrator.sex }}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="perpetrator_sex_{{ perpetrator.id }}">Sex</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 form-floating mb-3">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="perpetrator_type_of_disability_{{ perpetrator.id }}" name="perpetrator_type_of_disability_{{ perpetrator.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="none" {% if perpetrator.type_of_disability == 'none' %}selected{% endif %}>N/A</option>
+                                                        <option value="With Disability" {% if perpetrator.type_of_disability == 'With Disability' %}selected{% endif %}>With Disability</option>
+                                                        <option value="Permanent Disability" {% if perpetrator.type_of_disability == 'Permanent Disability' %}selected{% endif %}>Permanent Disability</option>
+                                                        <option value="Temporary Disability" {% if perpetrator.type_of_disability == 'Temporary Disability' %}selected{% endif %}>Temporary Disability</option>
+                                                    {% else %}
+                                                        <option value="Temporary Disability" selected>{{perpetrator.type_of_disability}}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="perpetrator_type_of_disability_{{ perpetrator.id }}">Type of Disability</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 form-floating mb-3">
+                                            <div class="form-floating">
+                                                
+                                                {% if global.security_status == "decrypted" %}
+                                                    <input type="date" class="form-control" id="perpetrator_date_of_birth_{{ perpetrator.id }}" name="perpetrator_date_of_birth_{{ perpetrator.id }}" value="{{ perpetrator.date_of_birth|date:'Y-m-d' }}">
+                                                {% else %}
+                                                    <input type="date" class="form-control" id="perpetrator_date_of_birth_{{ perpetrator.id }}" name="perpetrator_date_of_birth_{{ perpetrator.id }}" value="2000-01-01" disabled>
+                                                {% endif %}
+
+                                                <label for="perpetrator_date_of_birth_{{ perpetrator.id }}">Date of Birth</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 mb-3">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="perpetrator_civil_status_{{ perpetrator.id }}" name="perpetrator_civil_status_{{ perpetrator.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="single" {% if perpetrator.civil_status == 'single' %}selected{% endif %}>Single</option>
+                                                        <option value="married" {% if perpetrator.civil_status == 'married' %}selected{% endif %}>Married</option>
+                                                        <option value="live-in" {% if perpetrator.civil_status == 'live-in' %}selected{% endif %}>Live-In</option>
+                                                        <option value="widowed" {% if perpetrator.civil_status == 'widowed' %}selected{% endif %}>Widowed</option>
+                                                        <option value="separated" {% if perpetrator.civil_status == 'separated' %}selected{% endif %}>Separated</option>
+                                                    {% else %}
+                                                        <option value="separated" selected>{{perpetrator.civil_status}}</option>
+                                                    {% endif %}
+                                                </select>
+                                                <label for="perpetrator_civil_status_{{ perpetrator.id }}">Civil Status</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                    </div><!--End of row-->
+
+                                    <div class="row mb-1">
+                                        <div class="col-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="number" class="form-control" id="perpetrator_contact_number_{{ perpetrator.id }}" name="perpetrator_contact_number_{{ perpetrator.id }}" value="{{ perpetrator.contact_number }}">
+                                                <label for="perpetrator_contact_number_{{ perpetrator.id }}">Contact Number</label>
+                                            </div>
+                                        </div><!--End of col-->
+
+                                        <div class="col-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="number" class="form-control" id="perpetrator_telephone_number_{{ perpetrator.id }}" name="perpetrator_telephone_number_{{ perpetrator.id }}" value="{{ perpetrator.telephone_number }}">
+                                                <label for="perpetrator_telephone_number_{{ perpetrator.id }}">Telephone Number</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                    </div><!--End of row-->
+                                    <div class="row">
+                                        <div class="col-lg-3 col-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="perpetrator_educational_attainment_{{ perpetrator.id }}" name="perpetrator_educational_attainment_{{ perpetrator.id }}">
+                                                    
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="none"{% if perpetrator.educational_attainment == 'none' %}selected{% endif %}>None</option>
+                                                        <option value="highschool"{% if perpetrator.educational_attainment == 'highschool' %}selected{% endif %}>High School Level</option>
+                                                        <option value="vocational"{% if perpetrator.educational_attainment == 'vocational' %}selected{% endif %}>Vocational</option>
+                                                        <option value="collegeLevel"{% if perpetrator.educational_attainment == 'collegeLevel' %}selected{% endif %}>College Level</option>
+                                                        <option value="post-grad"{% if perpetrator.educational_attainment == 'post-grad' %}selected{% endif %}>Post Graduated</option>
+                                                        <option value="no-response"{% if perpetrator.educational_attainment == 'no-response' %}selected{% endif %}>No Response</option>
+                                                        <option value="educt-others"{% if perpetrator.educational_attainment == 'educt-others' %}selected{% endif %}>Others</option>
+                                                    {% else %}
+                                                        <option value="educt-others" selected>{{perpetrator.educational_attainment}}</option>
+                                                    {% endif %}
+                                                
+                                                </select>
+                                                <label for="perpetrator_educational_attainment_{{ perpetrator.id }}">Highest Educational Attainment</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="perpetrator_occupation_{{ perpetrator.id }}" name="perpetrator_occupation_{{ perpetrator.id }}" value="{{ perpetrator.occupation}}">
+                                                <label for="perpetrator_occupation_{{ perpetrator.id }}">Occupation</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="perpetrator_nationality_{{ perpetrator.id }}" name="perpetrator_nationality_{{ perpetrator.id }}" value="{{ perpetrator.nationality }}">
+                                                <label for="perpetrator_nationality_{{ perpetrator.id }}">Nationality</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="perpetrator_religion_{{ perpetrator.id }}" name="perpetrator_religion_{{ perpetrator.id }}">
+                                                    
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="none" {% if perpetrator.religion == 'none' %}selected{% endif %}>None</option>
+                                                        <option value="roman-catholic" {% if perpetrator.religion == 'roman-catholic' %}selected{% endif %}>Roman Catholic</option>
+                                                        <option value="islam" {% if perpetrator.religion == 'islam' %}selected{% endif %}>Islam</option>
+                                                        <option value="protestant" {% if perpetrator.religion == 'protestant' %}selected{% endif %}>Protestant</option>
+                                                        <option value="iglesia-ni-kristo" {% if perpetrator.religion == 'iglesia-ni-kristo' %}selected{% endif %}>Iglesia ni Kristo</option>
+                                                        <option value="aglipayan" {% if perpetrator.religion == 'aglipayan' %}selected{% endif %}>Aglipayan</option>
+                                                        <option value="other-religion" {% if perpetrator.religion == 'other-religion' %}selected{% endif %}>Others</option>
+                                                    {% else %}
+                                                        <option value="aglipayan" selected>{{perpetrator.religion}}</option>
+                                                    {% endif %}
+                                                    
+                                                </select>
+                                                <label for="perpetrator_religion_{{ perpetrator.id }}">Religion</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                    </div><!--End of row-->
+
+                                    <div class="row">
+                                        <div class="col-lg-6 col-12">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="perpetrator_house_information_{{ perpetrator.id }}" name="perpetrator_house_information_{{ perpetrator.id }}" value="{{ perpetrator.house_information }}">
+                                                <label for="perpetrator_house_information_{{ perpetrator.id }}">House Information</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 col-md-4 col-sm-8">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="perpetrator_street_{{ perpetrator.id }}" name="perpetrator_street_{{ perpetrator.id }}" value="{{ perpetrator.street }}">
+                                                <label for="perpetrator_street_{{ perpetrator.id }}">Street</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 col-md-4 col-sm-8">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="perpetrator_barangay_{{ perpetrator.id }}" name="perpetrator_barangay_{{ perpetrator.id }}" value="{{ perpetrator.barangay }}">
+                                                <label for="perpetrator_barangay_{{ perpetrator.id }}">Barangay</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 col-md-4 col-sm-8">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="perpetrator_province_{{ perpetrator.id }}" name="perpetrator_province_{{ perpetrator.id }}" value="{{ perpetrator.province }}">
+                                                <label for="perpetrator_province_{{ perpetrator.id }}">Province</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-3 col-md-4 col-sm-8">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="perpetrator_city_{{ perpetrator.id }}" name="perpetrator_city_{{ perpetrator.id }}" value="{{ perpetrator.city }}">
+                                                <label for="perpetrator_city_{{ perpetrator.id }}">City</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                        <div class="col-lg-6 col-8">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="perpetrator_region_{{ perpetrator.id }}" name="perpetrator_region_{{ perpetrator.id }}">
+                                                    {% if global.security_status == "decrypted" %}
+                                                        <option value="region-I" {% if perpetrator.region == 'region-I' %}selected{% endif %}>Region I – Ilocos Region</option>
+                                                        <option value="region-II" {% if perpetrator.region == 'region-II' %}selected{% endif %}>Region II – Cagayan Valley</option>
+                                                        <option value="region-III" {% if perpetrator.region == 'region-III' %}selected{% endif %}>Region III – Central Luzon</option>
+                                                        <option value="region-IV" {% if perpetrator.region == 'region-IV' %}selected{% endif %}>Region IV‑A – CALABARZON</option>
+                                                        <option value="mimaropa" {% if perpetrator.region == 'mimaropa' %}selected{% endif %}>MIMAROPA Region</option>
+                                                        <option value="region-V" {% if perpetrator.region == 'region-V' %}selected{% endif %}>Region V – Bicol Region</option>
+                                                        <option value="region-VI" {% if perpetrator.region == 'region-VI' %}selected{% endif %}>Region VI – Western Visayas</option>
+                                                        <option value="region-VII" {% if perpetrator.region == 'region-VII' %}selected{% endif %}>Region VII – Central Visayas</option>
+                                                        <option value="region-VIII" {% if perpetrator.region == 'region-VIII' %}selected{% endif %}>Region VIII – Eastern Visayas</option>
+                                                        <option value="region-IX" {% if perpetrator.region == 'region-IX' %}selected{% endif %}>Region IX – Zamboanga Peninsula</option>
+                                                        <option value="region-X" {% if perpetrator.region == 'region-X' %}selected{% endif %}>Region X – Northern Mindanao</option>
+                                                        <option value="region-XI" {% if perpetrator.region == 'region-XI' %}selected{% endif %}>Region XI – Davao Region</option>
+                                                        <option value="region-XII" {% if perpetrator.region == 'region-XII' %}selected{% endif %}>Region XII – SOCCSKSARGEN</option>
+                                                        <option value="region-XIII" {% if perpetrator.region == 'region-XIII' %}selected{% endif %}>Region XIII – Caraga</option>
+                                                        <option value="ncr" {% if perpetrator.region == 'ncr' %}selected{% endif %}>NCR – National Capital Region</option>
+                                                        <option value="car" {% if perpetrator.region == 'car' %}selected{% endif %}>CAR – Cordillera Administrative Region</option>
+                                                        <option value="barmm" {% if perpetrator.region == 'barmm' %}selected{% endif %}>BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                                    {% else %}
+                                                        <option value="barmm" selected>{{perpetrator.region}}</option>
+                                                    {% endif %}
+                                                
+                                                </select>
+                                                <label for="perpetrator_region_{{ perpetrator.id }}">Region</label>
+                                            </div>
+                                        </div><!--End of col-->
+                                    </div><!--End of row-->
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button class="btn btn-primary save-btn-perpetrator_{{ perpetrator.id }}" type="submit">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="tab-pane fade show active h-100" id="v-pills-no-perp" role="tabpanel" aria-labelledby="v-pills-no-parent-tab" tabindex="0">
+                        <div class="card border border-dark border-1 border-opacity-10 shadow-lg">
+                            <div class="card-body text-center">
+                              No Perpetrator Information Yet. 
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="nav-incident" role="tabpanel" aria-labelledby="nav-incident">
+            <div class="container pt-3">
+                <h2 class="pt-1 text-center">INCIDENT INFORMATION</h2>
+                <form id="incident-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="case_id" value="{{ case.id }}">
+                    <div class="pt-2">
+                        <input class="form-check-input" type="checkbox" value="true" {% if case.checkbox_ra_9262 %} checked {% endif %} name="checkbox_ra_9262" id="checkbox_ra_9262">
+                        <label class="form-check-label" for="checkbox_ra_9262">
+                            <strong> RA 9262: Anti Violence against Women and Their Children Act</strong>
+                        </label>
+                    </div><!--End of title-->
+                    <div class="row d-flex align-items-center pt-3" id="ra_9262_subschecks">
+                        <div class="col-lg-2 col-md-2 col-sm-8">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_sexual_abuse" name="checkbox_sexual_abuse" {% if case.checkbox_sexual_abuse %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_sexual_abuse">Sexual Abuse</label>
+                        </div><!--End of col-->
+                        <div class="col-lg-2 col-md-2 col-sm-8">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_psychological_abuse" name="checkbox_psychological_abuse" {% if case.checkbox_psychological_abuse %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_psychological_abuse">Psychological</label>
+                        </div><!--End of col-->
+                        <div class="col-lg-2 col-md-2 col-sm-8">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_physical_abuse" name="checkbox_physical_abuse" {% if case.checkbox_physical_abuse %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_physical_abuse">Physical</label>
+                        </div><!--End of col-->
+                        <div class="col-lg-2 col-md-2 col-sm-8">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_economic_abuse" name="checkbox_economic_abuse" {% if case.checkbox_economic_abuse %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_economic_abuse">Economic</label>
+                        </div><!--End of col-->
+                        <div class="col-lg-2 col-md-2 col-sm-8">
+                            <div class="input-group">
+                                <div class="input-group-text">
+                                    <input class="form-check-input" type="checkbox" value="true" id="checkbox_others" name="checkbox_others" {% if case.checkbox_others %} checked {% endif %}>
+                                </div>
+                                <input type="text" class="form-control" id="others_input" name="others_input" placeholder="Others" {% if case.checkbox_others %} value="{{ case.others_input }}" {% endif %}>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+
+                    <div class="pt-5">
+                        <input class="form-check-input" type="checkbox" value="true" id="checkbox_ra_8353" name="checkbox_ra_8353" {% if case.checkbox_ra_8353 %} checked {% endif %}>
+                        <label class="form-check-label" for="checkbox_ra_8353">
+                            <strong> RA 8353: Anti-Rape Law of 1995</strong>
+                        </label>
+                    </div><!--End of title-->
+                    <div class="row pt-3">
+                        <div class="col-lg-6 col-md-6 col-sm-8">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_rape_by_sexual_intercourse" name="checkbox_rape_by_sexual_intercourse" {% if case.checkbox_rape_by_sexual_intercourse %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_rape_by_sexual_intercourse">Rape by sexual intercourse</label>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-8">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_rape_by_sexual_assault" name="checkbox_rape_by_sexual_assault" {% if case.checkbox_rape_by_sexual_assault %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_rape_by_sexual_assault">Rape by sexual assault</label>
+                        </div>
+                    </div><!--End of row-->
+
+                    <div class="pt-5">
+                        <input class="form-check-input" type="checkbox" value="true" id="checkbox_art_336" name="checkbox_art_336" {% if case.checkbox_art_336 %} checked {% endif %}>
+                        <label class="form-check-label" for="checkbox_art_336">
+                            <strong> Art 336 of the Revised Penal Code</strong>
+                        </label>
+                    </div><!--End of title-->
+                    <div class="row pt-3">
+                        <div class="col-lg-12 col-md-12 col-sm-8">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_acts_of_lasciviousness" name="checkbox_acts_of_lasciviousness" {% if case.checkbox_acts_of_lasciviousness %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_acts_of_lasciviousness">Acts of lasciviousness</label>
+                        </div>
+                    </div><!--End of row-->
+
+                    <div class="col-lg-12 col-md-12 col-sm-8 pt-5">
+                        <input class="form-check-input" type="checkbox" value="true" id="checkbox_ra_7877" name="checkbox_ra_7877" {% if case.checkbox_ra_7877 %} checked {% endif %}>
+                        <label class="form-check-label" for="checkbox_ra_7877">
+                            <strong> RA 7877: Anti-Sexual Harassment Act</strong>
+                        </label>
+                    </div><!--End of title-->
+                    <div class="row pt-3">
+                        <div class="col-lg-3 col-md-12 col-sm-8">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_verbal" name="checkbox_verbal" {% if case.checkbox_verbal %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_verbal">Verbal</label>
+                        </div>
+                        <div class="col-lg-3 col-md-12 col-sm-8">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_physical" name="checkbox_physical" {% if case.checkbox_physical %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_physical">Physical</label>
+                        </div>
+                        <div class="col-lg-6 col-md-12 col-sm-8">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_use_of_objects" name="checkbox_use_of_objects" {% if case.checkbox_use_of_objects %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_use_of_objects">Use of objects, pictures, letters or notes with sexual under-pinnings</label>
+                        </div>
+                    </div><!--End of row-->
+                    
+                    <div class="pt-5">
+                        <input class="form-check-input" type="checkbox" value="true" id="checkbox_a_7610" name="checkbox_a_7610" {% if case.checkbox_a_7610 %} checked {% endif %}>
+                        <label class="form-check-label" for="checkbox_a_7610">
+                            <strong> A 7610: Special Protection of Children Against Child Abuse, Exploitation and Discrimination Act</strong>
+                        </label>
+                    </div><!--End of title-->
+                    <div class="row pb-3">
+                        <div class="col-lg-6 col-md-6 col-sm-8 pt-3">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_engage_prostitution" name="checkbox_engage_prostitution" {% if case.checkbox_engage_prostitution %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_engage_prostitution">Engage, facilitate, promote or attempt to commit prostitution</label>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-8 pt-3">
+                            <input class="form-check-input" type="checkbox" value="true" id="checkbox_sexual_lascivious_conduct" name="checkbox_sexual_lascivious_conduct" {% if case.checkbox_sexual_lascivious_conduct %} checked {% endif %}>
+                            <label class="form-check-label" for="checkbox_sexual_lascivious_conduct">Sexual intercourse or lascivious conduct</label>
+                        </div>
+                    </div><!--End of row-->
+                    <div class="pt-5">
+                        <input class="form-check-input" type="checkbox" value="true" id="checkbox_ra_9775" name="checkbox_ra_9775" {% if case.checkbox_ra_9775 %} checked {% endif %}>
+                        <label class="form-check-label" for="checkbox_ra_9775">
+                            <strong> RA 9775 Anti-Child Pornography Act</strong>
+                        </label>
+                    </div><!--End of title-->
+                    
+
+                    <div class="pt-4">
+                    <hr>
+                    </div>
+
+                    <h4 class="pt-3">Accident Information</h4>
+
+                    <div class="row pt-2 pb-3">
+                        <div class="col-lg-4 col-md-4 col-sm-8 pt-3">
+                            <div class="form-floating mb-3">
+                                
+                                {% if global.security_status == "decrypted" %}
+                                    <input type="date" class="form-control" id="date_latest_incident" name="date_latest_incident" value="{{ case.date_latest_incident }}">
+                                {% else %}
+                                    <input type="date" class="form-control" id="date_latest_incident" name="date_latest_incident" value="2000-01-01" disabled>
+                                {% endif %}
+                                
+                                <label for="date_latest_incident">Date of Latest Incident</label>
+                            </div>
+                            <input class="form-check-input" type="checkbox" value="true" id="incomplete_date" name="incomplete_date" {% if case.incomplete_date %} checked {% endif %}>
+                            <label class="form-check-label" for="incomplete_date"> Incomplete Date</label>
+                        </div><!--end of col-->
+                    </div><!--End of row-->
+
+                    <h5 class="pt-3 pb-3">Place of Incident:</h5>
+
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-8 pb-3">
+                            
+                            <div class="form-floating">
+                                <select class="form-select" id="place_of_incident" name="place_of_incident" aria-label="Floating label select example">
+                                    {% if global.security_status == "decrypted" %}
+                                    <option value="house" {% if case.place_of_incident == 'house' %} selected {% endif %}>House</option>
+                                    <option value="work" {% if case.place_of_incident == 'work' %} selected {% endif %}>Work</option>
+                                    <option value="school" {% if case.place_of_incident == 'school' %} selected {% endif %}>School</option>
+                                    <option value="commercialPlaces" {% if case.place_of_incident == 'commercialPlaces' %} selected {% endif %}>Commercial Places</option>
+                                    <option value="religion" {% if case.place_of_incident == 'religion' %} selected {% endif %}>Religious Institutions</option>
+                                    <option value="placeOfMedicalTreatment" {% if case.place_of_incident == 'placeOfMedicalTreatment' %} selected {% endif %}>Place of Medical Treatment</option>
+                                    <option value="transport" {% if case.place_of_incident == 'transport' %} selected {% endif %}>Transport & Connecting Sites</option>
+                                    <option value="brothels" {% if case.place_of_incident == 'brothels' %} selected {% endif %}>Brothels and Similar Establishments</option>
+                                    <option value="others" {% if case.place_of_incident == 'others' %} selected {% endif %}>Others</option>
+                                    <option value="noResponse" {% if case.place_of_incident == 'noResponse' %} selected {% endif %}>No Response</option>
+                                    {% else %}
+                                        <option value="house" {% if case.place_of_incident == 'house' %} selected {% endif %}>{{ case.place_of_incident }}</option>
+                                    {% endif %}
+                                </select>
+                                <label for="place_of_incident">Place of Incident</label>
+                            </div>
+
+                        </div><!--End of col-->
+                        <div class="col-lg-4 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="street" name="street" placeholder="Zamboanga Del Sur" value="{{ case.street }}">
+                                <label for="street">Street</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-4 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="barangay" name="barangay" placeholder="Zamboanga Del Sur" value="{{ case.barangay }}">
+                                <label for="barangay">Barangay</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--end or row-->
+
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="province" name="province" placeholder="Zamboanga Del Sur" value="{{ case.province }}">
+                                <label for="province">Province</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-4 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="city" name="city" placeholder="Zamboanga City" value="{{ case.city }}">
+                                <label for="city">City / Mun</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-4 col-md-4 col-sm-8 pb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="region" name="region" aria-label="Floating label select example">
+                                    
+                                    {% if global.security_status == "decrypted" %}
+                                        <option value="region-I" {% if case.region == 'region-I' %} selected {% endif %}>Region I – Ilocos Region</option>
+                                        <option value="region-II" {% if case.region == 'region-II' %} selected {% endif %}>Region II – Cagayan Valley</option>
+                                        <option value="region-III" {% if case.region == 'region-III' %} selected {% endif %}>Region III – Central Luzon</option>
+                                        <option value="region-IV" {% if case.region == 'region-IV' %} selected {% endif %}>Region IV‑A – CALABARZON</option>
+                                        <option value="mimaropa" {% if case.region == 'mimaropa' %} selected {% endif %}>MIMAROPA Region</option>
+                                        <option value="region-V" {% if case.region == 'region-V' %} selected {% endif %}>Region V – Bicol Region</option>
+                                        <option value="region-VI" {% if case.region == 'region-VI' %} selected {% endif %}>Region VI – Western Visayas</option>
+                                        <option value="region-VII" {% if case.region == 'region-VII' %} selected {% endif %}>Region VII – Central Visayas</option>
+                                        <option value="region-VIII" {% if case.region == 'region-VIII' %} selected {% endif %}>Region VIII – Eastern Visayas</option>
+                                        <option value="region-IX" {% if case.region == 'region-IX' %} selected {% endif %}>Region IX – Zamboanga Peninsula</option>
+                                        <option value="region-X" {% if case.region == 'region-X' %} selected {% endif %}>Region X – Northern Mindanao</option>
+                                        <option value="region-XI" {% if case.region == 'region-XI' %} selected {% endif %}>Region XI – Davao Region</option>
+                                        <option value="region-XII" {% if case.region == 'region-XII' %} selected {% endif %}>Region XII – SOCCSKSARGEN</option>
+                                        <option value="region-XIII" {% if case.region == 'region-XIII' %} selected {% endif %}>Region XIII – Caraga</option>
+                                        <option value="ncr" {% if case.region == 'ncr' %} selected {% endif %}>NCR – National Capital Region</option>
+                                        <option value="car" {% if case.region == 'car' %} selected {% endif %}>CAR – Cordillera Administrative Region</option>
+                                        <option value="barmm" {% if case.region == 'barmm' %} selected {% endif %}>BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                    {% else %}
+                                        <option value="house" {% if case.case.region == 'house' %} selected {% endif %}>{{ case.region }}</option>
+                                    {% endif %}
+                                    
+                                </select>
+                                <label for="region">Region</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="pt-3">
+                        <div class="mb-3">
+                            <label for="description_of_incident" class="form-label">Description of Incident</label>
+                            <textarea class="form-control" id="description_of_incident" name="description_of_incident" rows="3">{{ case.description_of_incident }}</textarea>
+                        </div>
+                    </div>
+
+                    <h3>Evidences:</h3>
+                    {% if case.evidence.all %}
+                        <div class="row">
+                            {% for evidence in case.evidence.all %}
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="form-check">
+                                    <!-- Add a link to the image with target="_blank" to open it in a new tab -->
+                                    <input class="form-check-input" type="checkbox" name="evidenceToDelete" value="{{ evidence.id }}">
+                                    <label class="form-check-label" for="evidence{{ evidence.id }}"></label>
+                                    <a href="{{ evidence.file.url }}" target="_blank" class="image-link">
+                                        <img src="{{ evidence.file.url }}" alt="Evidence Image" class="img-fluid">
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No evidence available.</p>
+                    {% endif %}
+
+                    <div class="row pt-3">
+                        <div class="mb-3">
+                            <label for="evidence_file" class="form-label"><strong>Upload Evidences:</strong></label>
+                            <input class="form-control" type="file" id="evidence_file" name="evidence_file" multiple>
+                        </div><!--form to upload-->
+                    </div><!--End or row-->
+                    <hr class="pt-3">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end pb-3">
+                        <button class="btn btn-primary" id="btnsubmitincident" type="button">Save</button>
+                    </div>
+                </form>
+
+            </div><!--end of container-->
+
+        </div> <!--end of incident tab pane-->
+    </div>
+</div>
+<!-- Add the toast container to your HTML, make sure it's placed in a suitable location -->
+<div class="toast-container position-fixed top-0 end-0 p-3 text-light">
+    <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header text-dark" style="background-color:#899499;">
+            <img src="{% static 'img/ecs-no-bg-2.png' %}" class="rounded me-2" alt="..." style="width:20px;">
+            <strong class="me-auto text-dark">Success</strong>
+            <small>Just Now</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-dark">
+        </div>
+    </div>
+    <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header text-dark" style="background-color:#899499;">
+            <img src="{% static 'img/ecs-no-bg-2.png' %}" class="rounded me-2" alt="..." style="width:20px;">
+            <strong class="me-auto text-dark">Error</strong>
+            <small>Just Now</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-dark">
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="warrantlessArrest" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="warrantlessArrestLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="warrantlessArrestLabel">Warrantless Arrest Confirmation</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="text-center fs-4">
+            Are you sure you want to send a warrantless report? This cannot be undone.
+          </div>
+        </div><!--end of body-->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary">Confirm</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addContactPersonModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addContactPersonLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="warrantlessArrestLabel">Add Contact Person</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="addNewContactPersonForm">
+            {% csrf_token %}
+            <input type="hidden" name="case_id" value="{{case.id}}">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-3 mb-3">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="contact_person_first_name" name="contact_person_first_name">
+                            <label for="contact_person_first_name">First Name</label>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 mb-3">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="contact_person_middle_name" name="contact_person_middle_name">
+                            <label for="contact_person_middle_name">Middle Name</label>
+                        </div>
+                    </div><!--End of col-->
+                    <div class="col-lg-3 mb-3">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="contact_person_last_name" name="contact_person_last_name">
+                            <label for="contact_person_last_name">Last Name</label>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 mb-3">
+                        <div class="form-floating">
+                            <select class="form-select" id="contact_person_suffix_name" name="contact_person_suffix_name">
+                                <option value="none">N/A</option>
+                                <option value="sr">Sr</option>
+                                <option value="jr">Jr</option>
+                                <option value="ii">II</option>
+                                <option value="iii">III</option>
+                                <option value="iv">IV</option>
+                            </select>
+                            <label for="contact_person_suffix_name">Suffix</label>
+                        </div>
+                    </div><!--End of col-->
+                </div><!--End of row-->
+
+                <div class="row pt-2">
+                    <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="contact_person_relationship" name="contact_person_relationship">
+                            <label for="contact_person_relationship">Relationship to the Victim/s</label>
+                        </div>
+                    </div><!--end of col-->
+                    <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="contact_person_contact-number" name="contact_person_contact-number">
+                            <label for="contact_person_contact-number">Contact No.</label>
+                        </div>
+                    </div><!--end of col-->
+                    <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="contact_person_contact-tel" name="contact_person_contact-tel">
+                            <label for="contact_person_contact-tel">Telephone No.</label>
+                        </div>
+                    </div><!--end of col-->
+                    <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="contact_person_street" name="contact_person_contact-street">
+                            <label for="contact_person_street">Street</label>
+                        </div>
+                    </div><!--end of col-->
+                </div><!--end of row-->
+
+                <div class="row pt-2">
+                    <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="contact_person_barangay" name="contact_person_barangay">
+                            <label for="contact_person_barangay">Barangay</label>
+                        </div>
+                    </div><!--end of col-->
+                    <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="contact_person_city" name="contact_person_city">
+                            <label for="contact_person_city">City</label>
+                        </div>
+                    </div><!--end of col-->
+                    <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="contact_person_province" name="contact_person_province">
+                            <label for="contact_person_province">Province</label>
+                        </div>
+                    </div><!--end of col-->
+                    <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                        <div class="form-floating">
+                            <select class="form-select" id="contact_person_region" name="contact_person_region">
+                                <option value="region-I">Region I – Ilocos Region</option>
+                                <option value="region-II">Region II – Cagayan Valley</option>
+                                <option value="region-III">Region III – Central Luzon</option>
+                                <option value="region-IV">Region IV‑A – CALABARZON</option>
+                                <option value="mimaropa">MIMAROPA Region</option>
+                                <option value="region-V">Region V – Bicol Region</option>
+                                <option value="region-VI">Region VI – Western Visayas</option>
+                                <option value="region-VII">Region VII – Central Visayas</option>
+                                <option value="region-VIII">Region VIII – Eastern Visayas</option>
+                                <option value="region-IX">Region IX – Zamboanga Peninsula</option>
+                                <option value="region-X">Region X – Northern Mindanao</option>
+                                <option value="region-XI">Region XI – Davao Region</option>
+                                <option value="region-XII">Region XII – SOCCSKSARGEN</option>
+                                <option value="region-XIII">Region XIII – Caraga</option>
+                                <option value="ncr">NCR – National Capital Region</option>
+                                <option value="car">CAR – Cordillera Administrative Region</option>
+                                <option value="barmm">BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                            </select>
+                            <label for="contact_person_region">Region</label>
+                        </div>
+                    </div><!--End of col-->
+
+                </div><!--end of row-->
+
+            </div><!--end of body-->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="contactPersonSubmitBtn">Submit</button>
+            </div>
+        </form>
+      </div>
+    </div>
+</div>
+
+<!-- Modal status add -->
+<div class="modal fade" id="statusAdd" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">Adding Status</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="statusForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <input type="hidden" id="caseId" value="{{ case.id }}">
+                <div class="form-floating mb-3">
+                    <textarea class="form-control" id="status_text" name="status_text"></textarea>
+                    <label for="status_text">Status</label>
+                </div><!--end of status-->
+              </div><!--end of body-->
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" id="submit_status" class="btn btn-primary">Done</button>
+              </div>
+        </form>
+      </div>
+    </div>
+</div>
+
+<!-- Modal status edit -->
+<div class="modal fade" id="statusEdit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Edit Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="statusEditForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="statusId" value="">
+                    <div class="form-floating mb-3">
+                        <textarea class="form-control" id="status_text_edit" name="status_text_edit"></textarea>
+                        <label for="status_text_edit">Status</label>
+                    </div><!--end of status-->
+                    <div class="form-floating mb-3">
+                        <input type="datetime-local" class="form-control" id="status_date_edit" name="status_date_edit"></input>
+                        <label for="status_date_edit">Date</label>
+                    </div><!--end of status-->
+                </div><!--end of body-->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="submit_edit_status" class="btn btn-primary">Done</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal confirm delete status hist -->
+<div class="modal fade" id="confirmStatusHistDelete" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this Status History?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmStatusHistDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="confirmDeletCase" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="staticBackdropLabel">Delete Case</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to delete this Case?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="confirmDeletCaseBtn">Yes</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Modal add victim -->
+<div class="modal fade" id="addVictimModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Add Victim</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="add_new_victim_form">
+            {% csrf_token %}
+            <input type="hidden" name="case_id" value="{{ case.id }}">
+            <div class="modal-body">
+                <div class="h-100">
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="victim_first_name" name="victim_first_name" >
+                                <label for="victim_first_name">First Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="victim_middle_name" name="victim_middle_name">
+                                <label for="victim_middle_name">Middle Name</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="victim_last_name" name="victim_last_name">
+                                <label for="victim_last_name">Last Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="victim_suffix_name" name="victim_suffix_name">
+                                    <option value="none">N/A</option>
+                                    <option value="sr">Sr</option>
+                                    <option value="jr">Jr</option>
+                                    <option value="ii">II</option>
+                                    <option value="iii">III</option>
+                                    <option value="iv">IV</option>
+                                </select>
+                                <label for="victim_suffix_name">Suffix</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="victim_sex" name="victim_sex">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                                <label for="victim_sex">Suffix</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="victim_type_of_disability" name="victim_type_of_disability">
+                                    <option value="none">N/A</option>
+                                    <option value="With Disability">With Disability</option>
+                                    <option value="Permanent Disability">Permanent Disability</option>
+                                    <option value="Temporary Disability">Temporary Disability</option>
+                                </select>
+                                <label for="victim_type_of_disability">Type of Disability</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="victim_date_of_birth" name="victim_date_of_birth">
+                                <label for="victim_date_of_birth">Date of Birth: </label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="victim_civil_status" name="victim_civil_status">
+                                    <option value="single">Single</option>
+                                    <option value="married">Married</option>
+                                    <option value="live-in">Live-In</option>
+                                    <option value="widowed">Widowed</option>
+                                    <option value="separated">Separated</option>
+                                </select>
+                                <label for="victim_civil_status">Civil Status</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-6 col-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="victim_contact_number" name="victim_contact_number">
+                                <label for="victim_contact_number">Contact Number</label>
+                            </div>
+                        </div><!--End of col-->
+                        
+                        <div class="col-lg-6 col-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="victim_telephone_number" name="victim_telephone_number">
+                                <label for="victim_telephone_number">Telephone Number</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="victim_educational_attainment" name="victim_educational_attainment">
+                                    <option value="none">None</option>
+                                    <option value="highschool">High School Level</option>
+                                    <option value="vocational">Vocational</option>
+                                    <option value="collegeLevel">College Level</option>
+                                    <option value="post-grad">Post Graduated</option>
+                                    <option value="no-response">No Response</option>
+                                    <option value="educt-others">Others</option>
+                                </select>
+                                <label for="victim_educational_attainment">Highest Educational Attainment</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="victim_occupation" name="victim_occupation">
+                                <label for="victim_occupation">Occupation</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="victim_nationality" name="victim_nationality">
+                                <label for="victim_nationality">Nationality</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="victim_religion" name="victim_religion">
+                                    <option value="none">None</option>
+                                    <option value="roman-catholic">Roman Catholic</option>
+                                    <option value="islam">Islam</option>
+                                    <option value="protestant">Protestant</option>
+                                    <option value="iglesia-ni-kristo">Iglesia ni Kristo</option>
+                                    <option value="aglipayan">Aglipayan</option>
+                                    <option value="other-religion">Others</option>
+                                </select>
+                                <label for="victim_religion">Religion</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-6 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="victim_house_information" name="victim_house_information">
+                                <label for="victim_house_information">House Information</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="victim_street" name="victim_street">
+                                <label for="victim_street">Street</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="victim_barangay" name="victim_barangay">
+                                <label for="victim_barangay">Barangay</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="victim_province" name="victim_province">
+                                <label for="victim_province">Province</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-12">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="victim_city" name="victim_city">
+                                <label for="victim_city">City</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-6 col-12">
+                            <div class="form-floating">
+                                <select class="form-select" id="victim_region" name="victim_region">
+                                    <option value="region-I">Region I – Ilocos Region</option>
+                                    <option value="region-II">Region II – Cagayan Valley</option>
+                                    <option value="region-III">Region III – Central Luzon</option>
+                                    <option value="region-IV">Region IV‑A – CALABARZON</option>
+                                    <option value="mimaropa">MIMAROPA Region</option>
+                                    <option value="region-V">Region V – Bicol Region</option>
+                                    <option value="region-VI">Region VI – Western Visayas</option>
+                                    <option value="region-VII">Region VII – Central Visayas</option>
+                                    <option value="region-VIII">Region VIII – Eastern Visayas</option>
+                                    <option value="region-IX">Region IX – Zamboanga Peninsula</option>
+                                    <option value="region-X">Region X – Northern Mindanao</option>
+                                    <option value="region-XI">Region XI – Davao Region</option>
+                                    <option value="region-XII">Region XII – SOCCSKSARGEN</option>
+                                    <option value="region-XIII">Region XIII – Caraga</option>
+                                    <option value="ncr">NCR – National Capital Region</option>
+                                    <option value="car">CAR – Cordillera Administrative Region</option>
+                                    <option value="barmm">BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                </select>
+                                <label for="victim_region">Region</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button class="btn btn-primary add-btn-victim" id="add-new-victim-btn" type="submit">Add</button>
+            </div>
+        </form>
+      </div>
+    </div>
+</div>
+
+<!-- Modal confrim victim delete -->
+<div class="modal fade" id="confirmVictimDelete" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this Victim?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal confirm perp delete -->
+<div class="modal fade" id="confirmPerpetratorDelete" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this Perpetrator?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmPerpetratorBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal add perpetrator -->
+<div class="modal fade" id="addPerpModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Add Perpetrator</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="add_new_perpetrator_form">
+            {% csrf_token %}
+            <div class="modal-body">
+                <input type="hidden" name="case_id" value="{{ case.id }}">
+                <div class="h-100">
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_first_name" name="perpetrator_first_name">
+                                <label for="perpetrator_first_name">First Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_middle_name" name="perpetrator_middle_name">
+                                <label for="perpetrator_middle_name">Middle Name</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_last_name" name="perpetrator_last_name">
+                                <label for="perpetrator_last_name">Last Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_suffix_name" name="perpetrator_suffix_name">
+                                    <option value="none">N/A</option>
+                                    <option value="sr">Sr</option>
+                                    <option value="jr">Jr</option>
+                                    <option value="ii">II</option>
+                                    <option value="iii">III</option>
+                                    <option value="iv">IV</option>
+                                </select>
+                                <label for="perpetrator_suffix_name">Suffix</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_identifying_marks" name="perpetrator_identifying_marks">
+                                <label for="perpetrator_identifying_marks">Identifying Marks</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_alias" name="perpetrator_alias">
+                                <label for="perpetrator_alias">Alias</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-12 mb-3">
+                            <div class="form-floating">
+                                <select id="perp-relationship-victim" name="perp-relationship-victim" class="form-select">
+                                    <option value="currentSpouse">Current spouse / partner</option>
+                                    <option value="formerSpouse">Former spouse / partner</option>
+                                    <option value="currentFiance">Current fiance / dating relationship</option>
+                                    <option value="formerFiance">Former fiance / dating relationship</option>
+                                    <option value="employer">Employer / manager / supervisor</option>
+                                    <option value="agentOfEmployer">Agent of Employer</option>
+                                    <option value="teacher">Teacher / instructor / professor</option>
+                                    <option value="coach">Coach / trainer</option>
+                                    <option value="immediateFamily">Immediate family</option>
+                                    <option value="otherRelatives">Other relatives</option>
+                                    <option value="peopleOfAuthority">People of authority / service provider</option>
+                                    <option value="neighbors">Neighbors / peers / coworkers / classmates</option>
+                                    <option value="stranger" selected>Stranger</option>
+                                </select>
+                                <label for="perp-relationship-victim" class="form-label">Relationship of Perpetrator to the Victim: </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_sex" name="perpetrator_sex">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                                <label for="perpetrator_sex">Suffix</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_type_of_disability" name="perpetrator_type_of_disability">
+                                    <option value="none">N/A</option>
+                                    <option value="With Disability">With Disability</option>
+                                    <option value="Permanent Disability">Permanent Disability</option>
+                                    <option value="Temporary Disability">Temporary Disability</option>
+                                </select>
+                                <label for="perpetrator_type_of_disability">Type of Disability</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="perpetrator_date_of_birth" name="perpetrator_date_of_birth">
+                                <label for="perpetrator_date_of_birth">Date of Birth: </label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_civil_status" name="perpetrator_civil_status">
+                                    <option value="single">Single</option>
+                                    <option value="married">Married</option>
+                                    <option value="live-in">Live-In</option>
+                                    <option value="widowed">Widowed</option>
+                                    <option value="separated">Separated</option>
+                                </select>
+                                <label for="perpetrator_civil_status">Civil Status</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-6 col-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="perpetrator_contact_number" name="perpetrator_contact_number">
+                                <label for="perpetrator_contact_number">Contact Number</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-6 col-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="perpetrator_telephone_number" name="perpetrator_telephone_number">
+                                <label for="perpetrator_telephone_number">Telephone Number</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_educational_attainment" name="perpetrator_educational_attainment">
+                                    <option value="none">None</option>
+                                    <option value="highschool">High School Level</option>
+                                    <option value="vocational">Vocational</option>
+                                    <option value="collegeLevel">College Level</option>
+                                    <option value="post-grad">Post Graduated</option>
+                                    <option value="no-response">No Response</option>
+                                    <option value="educt-others">Others</option>
+                                </select>
+                                <label for="perpetrator_educational_attainment">Highest Educational Attainment</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_occupation" name="perpetrator_occupation">
+                                <label for="perpetrator_occupation">Occupation</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_nationality" name="perpetrator_nationality">
+                                <label for="perpetrator_nationality">Nationality</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_religion" name="perpetrator_religion">
+                                    <option value="none">None</option>
+                                    <option value="roman-catholic">Roman Catholic</option>
+                                    <option value="islam">Islam</option>
+                                    <option value="protestant">Protestant</option>
+                                    <option value="iglesia-ni-kristo">Iglesia ni Kristo</option>
+                                    <option value="aglipayan">Aglipayan</option>
+                                    <option value="other-religion">Others</option>
+                                </select>
+                                <label for="perpetrator_religion">Religion</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-6 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="perpetrator_house_information" name="perpetrator_house_information">
+                                <label for="perpetrator_house_information">House Information</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="perpetrator_street" name="perpetrator_street">
+                                <label for="perpetrator_street">Street</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="perpetrator_barangay" name="perpetrator_barangay">
+                                <label for="perpetrator_barangay">Barangay</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="perpetrator_province" name="perpetrator_province">
+                                <label for="perpetrator_province">Province</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 col-12">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="perpetrator_city" name="perpetrator_city">
+                                <label for="perpetrator_city">City</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-6 col-12">
+                            <div class="form-floating">
+                                <select class="form-select" id="perpetrator_region" name="perpetrator_region">
+                                    <option value="region-I">Region I – Ilocos Region</option>
+                                    <option value="region-II">Region II – Cagayan Valley</option>
+                                    <option value="region-III">Region III – Central Luzon</option>
+                                    <option value="region-IV">Region IV‑A – CALABARZON</option>
+                                    <option value="mimaropa">MIMAROPA Region</option>
+                                    <option value="region-V">Region V – Bicol Region</option>
+                                    <option value="region-VI">Region VI – Western Visayas</option>
+                                    <option value="region-VII">Region VII – Central Visayas</option>
+                                    <option value="region-VIII">Region VIII – Eastern Visayas</option>
+                                    <option value="region-IX">Region IX – Zamboanga Peninsula</option>
+                                    <option value="region-X">Region X – Northern Mindanao</option>
+                                    <option value="region-XI">Region XI – Davao Region</option>
+                                    <option value="region-XII">Region XII – SOCCSKSARGEN</option>
+                                    <option value="region-XIII">Region XIII – Caraga</option>
+                                    <option value="ncr">NCR – National Capital Region</option>
+                                    <option value="car">CAR – Cordillera Administrative Region</option>
+                                    <option value="barmm">BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                </select>
+                                <label for="perpetrator_region">Region</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button class="btn btn-primary add-btn-perpetrator" type="submit">Add</button>
+            </div>
+        </form>
+      </div>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#table-status').DataTable({
+            dom: 'Brt <"bottom"lp>',
+            responsive: true,
+            fixedHeader: true,
+            lengthMenu: [[3, 6, 9, 15, -1], [3, 6, 9, 15, "All"]],
+            order: [[0, 'desc']],
+            language: {
+                // Set the entries label to an empty string
+                lengthMenu: '_MENU_'
+            }
+        });
+        // Intercept the form submission
+        $('#submit_status').on('click', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            // Collect form data
+            var formData = {
+                'case_id': $('#caseId').val(),
+                'status_text': $('#status_text').val(),
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val() // Include the CSRF token
+            };
+
+            // Send AJAX POST request
+            $.ajax({
+                type: 'POST',
+                url: '/add_status/' + formData.case_id + '/', // Specify the URL
+                data: formData,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Display success toast
+                        $('.toast-body').text('Status added successfully');
+                        $('#successToast').toast('show');
+                        
+                        // Close modal after 2 seconds
+                        setTimeout(function() {
+                            $('#statusAdd').modal('hide'); // Close modal
+                            location.reload(); // Reload the page
+                        }, 2000);
+                    } else {
+                        // Display error toast
+                        $('.toast-body').text('Error: ' + response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    // Display error toast
+                    $('.toast-body').text('AJAX Error: ' + error);
+                    $('#errorToast').toast('show');
+                }
+            });
+        });
+
+        // Function to handle opening the edit modal and populating the textarea with the existing status description
+        $('#table-status').on('click', '.btn-outline-success', function() {
+            var statusId = $(this).data('status-id');
+
+            // AJAX request to fetch status information
+            $.ajax({
+                type: 'GET',
+                url: '/edit_status/' + statusId + '/',  // URL to fetch status information
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Populate the modal with status information
+                        $('#status_text_edit').val(response.status_description);
+                        $('#status_date_edit').val(response.status_date);
+                        $('#statusId').val(statusId);
+                        $('#statusEdit').modal('show'); // Open the modal
+                    } else {
+                        // Show toast with error message
+                        $('.toast-body').text(response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    // Show toast with AJAX error message
+                    $('.toast-body').text('AJAX Error: ' + error);
+                    $('#errorToast').toast('show');
+                }
+            });
+        });
+
+        // Function to handle submitting the edit status form
+        $('#submit_edit_status').click(function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get the status ID and updated description from the form
+            var statusId = $('#statusId').val();
+            var updatedDescription = $('#status_text_edit').val();
+            var updatedDate = $('#status_date_edit').val();
+
+            // AJAX request to update the status
+            $.ajax({
+                type: 'POST',
+                url: '/edit_status/' + statusId + '/',  // URL to update status information
+                data: {
+                    'new_description': updatedDescription,
+                    'new_date': updatedDate,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()  // Add CSRF token
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Close the modal
+                        $('#statusEdit').modal('hide');
+                        // Show toast with success message
+                        $('.toast-body').text('Status updated successfully');
+                        $('#successToast').toast('show');
+                        // Reload the page after 2 seconds
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        // Show toast with error message
+                        $('.toast-body').text(response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    // Show toast with AJAX error message
+                    $('.toast-body').text('AJAX Error: ' + error);
+                    $('#errorToast').toast('show');
+                }
+            });
+        });
+
+        // Function to handle deleting a status history
+        $('#table-status').on('click', '#btn-delete-status-hist', function() {
+            var statusId = $(this).data('status-id');
+
+            // Show the confirmation modal
+            $('#confirmStatusHistDelete').modal('show');
+
+            // Handle delete confirmation
+            $('#confirmStatusHistDeleteBtn').click(function() {
+                // AJAX request to delete the status history
+                $.ajax({
+                    type: 'POST',
+                    url: '/delete_status/' + statusId + '/', // URL to delete status information
+                    data: {
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val() // Add CSRF token
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Hide the confirmation modal
+                            $('#confirmStatusHistDelete').modal('hide');
+                            // Show success toast
+                            $('.toast-body').text('Status history deleted successfully');
+                            $('#successToast').toast('show');
+                            // Reload the page after 2 seconds
+                            setTimeout(function() {
+                                location.reload();
+                            }, 2000);
+                        } else {
+                            // Show toast with error message
+                            $('.toast-body').text(response.message);
+                            $('#errorToast').toast('show');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                        // Show toast with AJAX error message
+                        $('.toast-body').text('AJAX Error: ' + error);
+                        $('#errorToast').toast('show');
+                    }
+                });
+            });
+        });
+        // Function to handle the confirmation of case deletion
+        $('.btn-confirm-delete-case').click(function() {
+            var caseId = $(this).data('case-id');
+            $('#confirmDeletCase').modal('show'); // Show the confirmation modal
+            // Set the caseId as data attribute of the confirmation button
+            console.log(caseId)
+            $('#confirmDeletCaseBtn').data('case-id', caseId);
+        });
+
+        $('#confirmDeletCaseBtn').click(function() {
+            var caseId = $(this).data('case-id');
+        
+            $.ajax({
+                method: 'POST',
+                url: '{% url "delete_case" %}',
+                data: { case_id: caseId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Display success message
+                        $('#successToast .toast-body').text(response.message);
+                        $('#successToast').toast('show');
+                        // Reload the page after 2 seconds
+                        setTimeout(function() {
+                            window.location.href = '{% url "barangay case" %}';
+                        }, 2000);
+                    } else {
+                        // Display error message
+                        $('#errorToast .toast-body').text(response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle error
+                    console.error('Error deleting case:', error);
+                }
+            });
+        });
+
+        $('.btn-check-update').on('change', function() {
+            var status = $(this).data('status');
+            var caseId = {{ case.pk }};
+            var csrfToken = '{{ csrf_token }}';  // Fetch CSRF token from the cookie
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "update_case_status" case_id=0 %}'.replace('0', caseId),
+                data: {'status_case': status, 'csrfmiddlewaretoken': csrfToken},  // Include CSRF token in the data
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        console.log('Case status updated successfully');
+                        $('.toast-body').text('Case status updated successfully');
+                        $('#successToast').toast('show');
+                    } else {
+                        console.error('Failed to update case status:', response.error);
+                        $('.toast-body').text('Failed to update case status:', response.error);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    console.error('Failed to update case status:', errmsg);
+                    $('.toast-body').text('Failed to update case status:', errmsg);
+                    $('#errorToast').toast('show');
+                }
+            });
+        });
+
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // Get today's date in the format YYYY-MM-DD
+        var today = new Date().toISOString().split('T')[0];
+
+
+        // Function to handle form submission
+        $('#add_new_victim_form').submit(function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            // Disable the submit button to prevent multiple submissions
+            $('#add-new-victim-btn').prop('disabled', true);
+
+            $.ajax({
+                url: '{% url "add_new_victim" %}',
+                method: 'POST',
+                data: $(this).serialize(), // Serialize form data
+                success: function(response) {
+                    if (response.success) {
+                        // Display success message and reload page after 2 seconds
+                        $('#successToast .toast-body').text(response.message);
+                        $('#successToast').toast('show');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        // Display error message
+                        $('#errorToast .toast-body').text(response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    console.log(xhr.status + ": " + xhr.responseText);
+                },
+                complete: function() {
+                    // Re-enable the submit button after the AJAX request is complete
+                    $('#add-new-victim-btn').prop('disabled', false);
+                }
+            });
+        });
+
+        // Attach the form submission function to the click event of the submit button
+        $('#add-new-victim-btn').click(function() {
+            $('#add_new_victim_form').submit(); // Trigger form submission when the button is clicked
+        });
+
+        // Function to handle form submission
+        $('#addNewContactPersonForm').submit(function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            // Disable the submit button to prevent multiple submissions
+            $('#contactPersonSubmitBtn').prop('disabled', true);
+
+            $.ajax({
+                url: '{% url "add_new_contact_person" %}',
+                method: 'POST',
+                data: $(this).serialize(), // Serialize form data
+                success: function(response) {
+                    if (response.success) {
+                        // Display success message and reload page after 2 seconds
+                        $('#successToast .toast-body').text(response.message);
+                        $('#successToast').toast('show');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        // Display error message
+                        $('#errorToast .toast-body').text(response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    console.log(xhr.status + ": " + xhr.responseText);
+                },
+                complete: function() {
+                    // Re-enable the submit button after the AJAX request is complete
+                    $('#contactPersonSubmitBtn').prop('disabled', false);
+                }
+            });
+        });
+
+        // Attach the form submission function to the click event of the submit button
+        $('#contactPersonSubmitBtn').click(function() {
+            $('#addNewContactPersonForm').submit(); // Trigger form submission when the button is clicked
+        });
+
+        // Function to handle the confirmation of victim deletion
+        $('.btn-confirm-delete-victim').click(function() {
+            var victimId = $(this).data('victim-id');
+            $('#confirmVictimDelete').modal('show'); // Show the confirmation modal
+            // Set the victimId as data attribute of the confirmation button
+            $('#confirmDeleteBtn').data('victim-id', victimId);
+        });
+
+        // Function to handle the actual deletion after confirmation
+        $('#confirmDeleteBtn').click(function() {
+            var victimId = $(this).data('victim-id');
+            
+            // Send AJAX request to delete the victim
+            $.ajax({
+                url: '{% url "delete_victim" %}',
+                method: 'POST',
+                data: {
+                    victim_id: victimId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Display success message
+                        $('#successToast .toast-body').text(response.message);
+                        $('#successToast').toast('show');
+                        // Reload the page after 2 seconds
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        // Display error message
+                        $('#errorToast .toast-body').text(response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    console.error(xhr.status + ": " + xhr.responseText);
+                }
+            });
+        });
+
+
+        // Function to handle form submission
+        $('#add_new_perpetrator_form').submit(function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            $.ajax({
+                url: '{% url "add_new_perpetrator" %}',
+                method: 'POST',
+                data: $(this).serialize(), // Serialize form data
+                success: function(response) {
+                    if (response.success) {
+                        // Display success message and reload page after 2 seconds
+                        $('#successToast .toast-body').text(response.message);
+                        $('#successToast').toast('show');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        // Display error message
+                        $('#errorToast .toast-body').text(response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    console.log(xhr.status + ": " + xhr.responseText);
+                }
+            });
+        });
+
+        // Attach the form submission function to the click event of the submit button
+        $('#add-new-perpetrator-btn').click(function() {
+            $('#add_new_perpetrator_form').submit(); // Trigger form submission when the button is clicked
+        });
+
+        $('#confirmPerpetratorBtn').click(function() {
+            var perpetratorId = $('.btn-delete-perpetrator').data('perpetrator-id');
+
+            $.ajax({
+                url: '{% url "delete_perpetrator" %}',
+                method: 'POST',
+                data: {
+                    perpetrator_id: perpetratorId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Display success message
+                        $('#successToast .toast-body').text(response.message);
+                        $('#successToast').toast('show');
+                        // Reload the page after 2 seconds
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        // Display error message
+                        $('#errorToast .toast-body').text(response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    console.error(xhr.status + ": " + xhr.responseText);
+                }
+            });
+        });
+
+        $('#btnsubmitincident').click(function() {
+            // Prevent default form submission
+            event.preventDefault();
+
+            // Create FormData object from the form
+            var formData = new FormData($('#incident-form')[0]);
+
+            // Send AJAX request
+            $.ajax({
+                type: 'POST',
+                url: '/process_incident_form/',
+                data: formData,
+                contentType: false, // Prevent jQuery from automatically setting contentType
+                processData: false, // Prevent jQuery from automatically processing data
+                dataType: 'json', // Expect JSON response
+                success: function(response) {
+                    // Show success toast
+                    $('#successToast .toast-body').text(response.message);
+                    $('#successToast').toast('show');
+                    
+                    // Reload page after 3 seconds
+                    setTimeout(function() {
+                        location.reload();
+                    }, 3000);
+                },
+                error: function(xhr, errmsg, err) {
+                    // Show error toast
+                    $('#errorToast .toast-body').text('Error occurred while processing the form.');
+                    $('#errorToast').toast('show');
+                }
+            });
+        });
+
+        // Function to set the active tab
+        function setActiveTab() {
+            // Get the ID of the last active tab from localStorage
+            const activeTab = localStorage.getItem('activeTab');
+
+            // If there's an active tab stored in localStorage, show it
+            if (activeTab) {
+                const activeTabButton = document.querySelector(`#${activeTab}`);
+                if (activeTabButton) {
+                    activeTabButton.classList.add('active');
+                    const tabContentId = activeTabButton.getAttribute('aria-controls');
+                    const activeTabContent = document.getElementById(tabContentId);
+                    if (activeTabContent) {
+                        activeTabContent.classList.add('active', 'show');
+                    }
+                }
+            }
+        }
+
+        // Get all forms
+        const forms = document.querySelectorAll("form");
+
+        // Get the form associated with the save-btn-victim button
+        const form = document.getElementById('save-btn-victim').closest('form');
+
+        // Add a submit event listener to the form
+        form.addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get the victim ID from the form's ID
+            const victimId = this.id.split('_')[2];
+
+            // Get the form data
+            const formData = new FormData(this);
+
+            // Send an AJAX request to save the data
+            fetch(`/save_victim_data/${victimId}/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display success message in a toast
+                const successToast = document.getElementById("successToast");
+                const toastBody = successToast.querySelector('.toast-body');
+                toastBody.textContent = data.message;
+                successToast.classList.add('show');
+                setTimeout(() => {
+                    successToast.classList.remove('show');
+                }, 3000);
+                // Reload the page after a short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Display error message in a toast
+                const errorToast = document.getElementById("errorToast");
+                const toastBody = errorToast.querySelector('.toast-body');
+                toastBody.textContent = 'An error occurred while saving the data.';
+                errorToast.classList.add('show');
+                setTimeout(() => {
+                    errorToast.classList.remove('show');
+                }, 3000);
+            });
+        });
+
+        // Get all forms for perpetrators
+        const perpetratorForms = document.querySelectorAll("form[id^='perpetrator_form_']");
+
+        // Loop through each perpetrator form and add a submit event listener
+        perpetratorForms.forEach(function(form) {
+            form.addEventListener("submit", function(event) {
+                event.preventDefault(); // Prevent the default form submission
+
+                // Get the perpetrator ID from the form's ID
+                const perpetratorId = this.id.split('_')[2];
+                console.log(perpetratorId);
+
+                // Get the form data
+                const formData = new FormData(this);
+
+                // Send an AJAX request to save the data
+                fetch(`/save_perpetrator_data/${perpetratorId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Display success message in a toast
+                    const successToast = document.getElementById("successToast");
+                    const toastBody = successToast.querySelector('.toast-body');
+                    toastBody.textContent = data.message;
+                    successToast.classList.add('show');
+                    setTimeout(() => {
+                        successToast.classList.remove('show');
+                    }, 3000);
+                    // Reload the page after a short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Display error message in a toast
+                    const errorToast = document.getElementById("errorToast");
+                    const toastBody = errorToast.querySelector('.toast-body');
+                    toastBody.textContent = 'An error occurred while saving the data.';
+                    errorToast.classList.add('show');
+                    setTimeout(() => {
+                        errorToast.classList.remove('show');
+                    }, 3000);
+                });
+            });
+        });
+
+        // Get all forms for contact person
+        const contactPersonForms = document.querySelectorAll("form[id^='contact_person_form_']");
+
+        // Loop through each contact person form and add a submit event listener
+        contactPersonForms.forEach(function(form) {
+            form.addEventListener("submit", function(event) {
+                event.preventDefault(); // Prevent the default form submission
+                console.log(this.id);
+                // Get the perpetrator ID from the form's ID
+                const contactPersonId = this.id.split('_').pop();
+                console.log(contactPersonId);
+                // Get the form data
+                const formData = new FormData(this);
+
+                // Send an AJAX request to save the data
+                fetch(`/save_contact_person_data/${contactPersonId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Display success message in a toast
+                    const successToast = document.getElementById("successToast");
+                    const toastBody = successToast.querySelector('.toast-body');
+                    toastBody.textContent = data.message;
+                    successToast.classList.add('show');
+                    setTimeout(() => {
+                        successToast.classList.remove('show');
+                    }, 3000);
+                    // Reload the page after a short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Display error message in a toast
+                    const errorToast = document.getElementById("errorToast");
+                    const toastBody = errorToast.querySelector('.toast-body');
+                    toastBody.textContent = 'An error occurred while saving the data.';
+                    errorToast.classList.add('show');
+                    setTimeout(() => {
+                        errorToast.classList.remove('show');
+                    }, 3000);
+                });
+            });
+        });
+
+        // Add event listener for the window load event
+        window.addEventListener('load', setActiveTab);
+
+        // Add event listener for tab click event to update localStorage
+        const tabButtons = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function(event) {
+                const tabId = event.target.getAttribute('id');
+                localStorage.setItem('activeTab', tabId);
+            });
+        });
+
+
+    });
+
+</script>
+{% endblock scripts %}

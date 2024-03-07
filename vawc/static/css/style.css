@@ -192,3 +192,33 @@ main {
     text-align: center;
     margin: 0 6px; /* Add gap between inputs */
 }
+
+.image-link {
+    display: block;
+    position: relative;
+    overflow: hidden;
+}
+
+.image-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3); /* Adjust opacity as needed */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-link:hover::before {
+    opacity: 1;
+}
+
+.image-link img {
+    transition: transform 0.3s ease;
+}
+
+.image-link:hover img {
+    transform: scale(1.1); /* Adjust scale as needed */
+}

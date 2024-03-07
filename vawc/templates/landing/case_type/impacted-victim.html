@@ -24,6 +24,7 @@
                 <input type="hidden" name="type_of_case" value="Impacted">
                 <input type="hidden" id="victim_count" name="victim_count" value="1">
                 <input type="hidden" id="perpetrator_count" name="perpetrator_count" value="1">
+                <input type="hidden" id="email-confirmed" name="email-confirmed">
                 <!--single form panel-->
                 <div class="multisteps-form__panel shadow p-4 rounded bg-white js-active" data-animation="slideHorz">
                     <div class="multisteps-form__content">
@@ -569,8 +570,6 @@
     }
     $(document).ready(function() {
 
-
-
         let goForSubmission = false
 
         $('#impact-victim-form').submit(function(e) {
@@ -581,6 +580,7 @@
                 $('#sendEmail').modal('show');
             } else {
                 // Submitting form to database
+
                 var formData = new FormData(this); // Create FormData object from the form
                 $.ajax({
                     type: 'POST',
@@ -610,35 +610,128 @@
         // email confirmation
         $('#emailConfirmationForm').submit(function(e) {
             e.preventDefault(); // Prevent the default form submission
- 
+
             // Check if the input is email address
+            var emailValue = $('#email-confirm').val();
 
+            // For example, you can log it to the console
+            console.log("Email entered: " + emailValue);
 
-            // hide email modal
-            $('#sendEmail').modal('hide');
+            $.ajax({
+                url: '{% url 'email_confirm'  %}', // Modify the URL to point to your Django view endpoint
+                type: 'POST',
+                data: { emailConfirm: emailValue }, // Pass the email value in the data object
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}' // Include the CSRF token using Django's template syntax
+                },
+                success: function(response) {
+                    // Handle success response
+                    console.log(response); // Log the response to the console
 
+                    // Hide the email modal
+                    $('#sendEmail').modal('hide');
 
-            // show otp modal
-            $('#otpModal').modal('show');
+                    // Show the OTP modal
+                    $('#otpModal').modal('show');
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    console.error('Error:', errorThrown);
+                    // Show error toast if response indicates failure
+                    showToast('error', 'An error occurred. Please try again.');
+                }
+            });
         });
 
         // otp checking
         $('#otpForm').submit(function(e) {
             e.preventDefault(); // Prevent the default form submission
- 
-            // hide otp modal
-            $('#otpModal').modal('hide');
+            var formData = $(this).serialize();
+            $.ajax({
+                type: 'POST',
+                url: '{% url "verify_otp_email" %}',
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        $('#successMessage').text(response.message);
+                        // hide otp modal
+                        $('#otpModal').modal('hide');
+                        var emailValue = $('#email-confirm').val();
+                        console.log("Email entered(OTP): " + emailValue);
+                        $('#email-confirmed').val(emailValue);
+                        goForSubmission = true
 
-            goForSubmission = true
-
-            // to trigger button of main form
-            document.querySelector(".btn-form-submit").click()
+                        // to trigger button of main form
+                        document.querySelector(".btn-form-submit").click()
+                        // Log success message to the console
+                        console.log('OTP verification successful.');
+                    } else {
+                        $('#otpErrorMessage').text(response.message);
+                        if (response.message === 'OTP has expired.' || response.message === 'Incorrect OTP.') {
+                            $('.text-danger').show(); // Show the error message div
+                        }
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    $('#otpErrorMessage').text('Error occurred. Please try again.');
+                    // Log error message to the console
+                    console.error('Error occurred during OTP verification:', errmsg);
+                }
+            });
         });
 
 
         // Prevent form submission when clicking the buttons inside the form
         $('#add-victim-form, #delete-victim-form, #add-perpetrator-form, #delete-perpetrator-form').click(function(e) {
             e.preventDefault(); // Prevent the default action
+        });
+
+        // Function to update the countdown timer
+        function updateTimer(seconds) {
+            $('#resendTimer').text(`Resend ${seconds}s`);
+        }
+
+        // Function to handle the resend action
+        function resendOTP() {
+            // Disable the resend button
+            $('#resendButton').prop('disabled', true);
+            // Hide the resend button
+            $('#resendButton').hide();
+
+            // Set the initial timer value
+            let secondsRemaining = 30;
+            updateTimer(secondsRemaining);
+
+            // Start the countdown
+            const timerInterval = setInterval(() => {
+                secondsRemaining--;
+                updateTimer(secondsRemaining);
+                if (secondsRemaining === 0) {
+                    // Enable the resend button and clear the timer
+                    clearInterval(timerInterval);
+                    $('#resendButton').prop('disabled', false);
+                    $('#resendButton').show(); // Show the resend button
+                    $('#resendTimer').text('');
+                }
+            }, 1000);
+
+            // Send AJAX request to resend OTP
+            $.ajax({
+                type: 'POST',
+                url: '{% url "resend_otp_email" %}',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }, // Include CSRF token in the headers
+                success: function(response) {
+                    // Handle success response if needed
+                },
+                error: function(xhr, errmsg, err) {
+                    console.error('Error occurred during OTP resend:', errmsg);
+                }
+            });
+        }
+
+        // Click event handler for the resend button
+        $('#resendButton').click(function(event) {
+            event.preventDefault();
+            resendOTP();
         });
 
         // Get the current date
@@ -650,14 +743,6 @@
         // Set the value of the input field to the current date
         $('#date-latest-incident').val(formattedDate);
     });
-
-
-
-
-
-
-
-
 
 </script>
 {% endblock scripts %}

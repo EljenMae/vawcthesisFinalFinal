@@ -1,0 +1,266 @@
+{% extends "../base/base.html" %}
+{% block title %}Track Case{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container pt-5 pb-5">
+    <div class="card">
+        <div class="card-body">
+            <a href="{% url 'home' %}"><button type="button" class="btn-close d-flex ms-auto" aria-label="Close"></button></a>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-8 text-center">
+                    <img src= "{% static '/img/track_case.png' %}" class="img-fluid" alt="image" style="width:450px;">
+                </div>
+            <div class="col-lg-6 col-md-6 col-sm-8 pt-5">
+                <h2 class="text-center pt-3 pb-3">Track Case</h2>
+                    <form id="trackForm" method="post">
+                        {% csrf_token %}
+                        <div class="row pb-2">
+                            <div class="col-lg-12 col-md-12 col-sm-8 pt-2">
+                                <label for="email" class="form-label">Enter your Email that was Assocaited with the Case: </label>
+                                <input type="email" class="form-control" id="email" name="email" aria-describedby="emailFeedback">
+                                <div id="emailFeedback" class="invalid-feedback">
+                                    No Account Associated with any Case.
+                                </div>
+                                <!--invalid feedback-->
+                            </div>
+                        </div><!--First row-->
+                        <div class="col-12 col-md-12 col-sm-8 pt-3 pt-2">
+                            <button id="submitButton" class="btn btn-primary w-100" type="submit">Track Case</button>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+      </div>
+    </div>
+</div>
+
+<div class="modal fade" id="otpModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="otpModalToggleLabel">One-Time Password Verification</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-center">Please enter the one-time password to verify your account</h6>
+                <div class="text-center mt-3">
+                    <span>A code has been sent to</span>
+                    <small id="hidden_email">*****gmail.com</small>
+                </div>
+                <form id="otpForm" method="post">
+                    {% csrf_token %}
+                    <div id="otp" class="inputs d-flex justify-content-center mt-4">
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_1" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_2" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_3" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_4" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_5" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_6" maxlength="1" />
+                    </div>
+                    <div class="text-center mt-4">
+                        <button class="btn btn-primary px-4" type="submit">Validate</button>
+                    </div>
+                    <div class="text-center mt-3 text-danger" style="display: none;">
+                        <i class='bx bx-error-circle'></i>
+                        <span id="otpErrorMessage"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="content d-flex justify-content-center align-items-center">
+                    <span id="resendText">Didn't get the code</span>
+                    <a href="#" id="resendButton" class="text-decoration-none ms-3">Resend</a>
+                    <span id="resendTimer" class="text-decoration-none ms-3"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3 text-light">
+    <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header text-dark" style="background-color:#899499;">
+            <img src="{% static 'img/ecs-no-bg-2.png' %}" class="rounded me-2" alt="..." style="width:20px;">
+            <strong class="me-auto text-dark">Success</strong>
+            <small>Just Now</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-dark">
+        </div>
+    </div>
+    <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header text-dark" style="background-color:#899499;">
+            <img src="{% static 'img/ecs-no-bg-2.png' %}" class="rounded me-2" alt="..." style="width:20px;">
+            <strong class="me-auto text-dark">Error</strong>
+            <small>Just Now</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-dark">
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+
+        // email confirmation
+        $('#trackForm').submit(function(e) {
+            e.preventDefault(); // Prevent the default form submission
+        
+            // Get the email value from the input field
+            var emailValue = $('#email').val();
+        
+            // AJAX request to check if the email exists
+            $.ajax({
+                url: '{% url 'check_email_case' %}', // Modify the URL to point to your Django view endpoint
+                type: 'POST',
+                data: { email: emailValue }, // Pass the email value in the data object
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}' // Include the CSRF token using Django's template syntax
+                },
+                success: function(response) {
+                    // Handle success response
+                    console.log(response); // Log the response to the console
+        
+                    if (response.success) {
+                        // If email exists in the database, proceed with email confirmation
+                        $.ajax({
+                            url: '{% url 'email_confirm' %}', // Modify the URL to point to your Django view endpoint
+                            type: 'POST',
+                            data: { emailConfirm: emailValue }, // Pass the email value in the data object
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}' // Include the CSRF token using Django's template syntax
+                            },
+                            success: function(response) {
+                                // Handle success response
+                                console.log(response); // Log the response to the console
+
+                                // Show the OTP modal
+                                $('#otpModal').modal('show');
+                            },
+                            error: function(xhr, textStatus, errorThrown) {
+                                console.error('Error:', errorThrown);
+                                // Show error toast if response indicates failure
+                                showToast('error', 'An error occurred. Please try again.');
+                            }
+                        });
+                    } else {
+                         // If email doesn't exist in the database, show an error message
+                        //showToast('error', 'Email not found. Please enter a valid email.');
+                        // Add is-invalid class to the email input field
+                        $('#email').addClass('is-invalid');
+                    }
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    console.error('Error:', errorThrown);
+                    // Show error toast if response indicates failure
+                    showToast('error', 'An error occurred. Please try again.');
+                }
+            });
+        });
+
+        // otp checking
+        $('#otpForm').submit(function(e) {
+            e.preventDefault(); // Prevent the default form submission
+            var formData = $(this).serialize();
+            $.ajax({
+                type: 'POST',
+                url: '{% url "verify_otp_email_track_case" %}',
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        //$('#successMessage').text(response.message);
+                        $('.toast-body').text('OTP verification successful.');
+                        $('#successToast').toast('show');
+                        // hide otp modal
+                        $('#otpModal').modal('hide');
+                        var emailValue = $('#email').val();
+                        console.log("Email entered(OTP): " + response.user_email);
+                        // Log success message to the console
+                        console.log('OTP verification successful.');
+                        // Access and log the token to the console
+                        console.log('Token:', response.token);
+
+                        // Get the URL for track_case_info view with placeholders for user_email and token
+                        var trackCaseInfoUrl = "{% url 'track_case_info' user_email='__user_email__' token='__token__' %}";
+
+                        // Replace the placeholders with actual values obtained from the response
+                        trackCaseInfoUrl = trackCaseInfoUrl.replace('__user_email__', emailValue);
+                        trackCaseInfoUrl = trackCaseInfoUrl.replace('__token__', response.token);
+
+                        // Redirect to the track_case_info URL after 10 seconds
+                        setTimeout(function() {
+                            window.location.href = trackCaseInfoUrl;
+                        }, 3000);
+                    } else {
+                        $('#otpErrorMessage').text(response.message);
+                        if (response.message === 'OTP has expired.' || response.message === 'Incorrect OTP.') {
+                            $('.text-danger').show(); // Show the error message div
+                        }
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    $('#otpErrorMessage').text('Error occurred. Please try again.');
+                    // Log error message to the console
+                    console.error('Error occurred during OTP verification:', errmsg);
+                }
+            });
+        });
+
+
+
+        // Function to update the countdown timer
+        function updateTimer(seconds) {
+            $('#resendTimer').text(`Resend ${seconds}s`);
+        }
+
+        // Function to handle the resend action
+        function resendOTP() {
+            // Disable the resend button
+            $('#resendButton').prop('disabled', true);
+            // Hide the resend button
+            $('#resendButton').hide();
+
+            // Set the initial timer value
+            let secondsRemaining = 30;
+            updateTimer(secondsRemaining);
+
+            // Start the countdown
+            const timerInterval = setInterval(() => {
+                secondsRemaining--;
+                updateTimer(secondsRemaining);
+                if (secondsRemaining === 0) {
+                    // Enable the resend button and clear the timer
+                    clearInterval(timerInterval);
+                    $('#resendButton').prop('disabled', false);
+                    $('#resendButton').show(); // Show the resend button
+                    $('#resendTimer').text('');
+                }
+            }, 1000);
+
+            // Send AJAX request to resend OTP
+            $.ajax({
+                type: 'POST',
+                url: '{% url "resend_otp_email" %}',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }, // Include CSRF token in the headers
+                success: function(response) {
+                    // Handle success response if needed
+                },
+                error: function(xhr, errmsg, err) {
+                    console.error('Error occurred during OTP resend:', errmsg);
+                }
+            });
+        }
+
+        // Click event handler for the resend button
+        $('#resendButton').click(function(event) {
+            event.preventDefault();
+            resendOTP();
+        });
+
+    });
+
+</script>
+{% endblock scripts %}

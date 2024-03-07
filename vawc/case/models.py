@@ -289,3 +289,9 @@ class Parent_Perpetrator(models.Model):
     city = models.CharField(max_length=100, null=True, blank=True)
     region = models.CharField(max_length=250, null=True, blank=True)
 
+class Witness(models.Model):
+    case_witness = models.ForeignKey(Case, on_delete=models.CASCADE, related_name='contact_witness',null=True, blank=True)
+    name = models.CharField(max_length=250, null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
+    contact_number = models.CharField(max_length=100, null=True, blank=True)
+    email = models.CharField(max_length=50, null=True, blank=True)

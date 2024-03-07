@@ -13,15 +13,15 @@
     <div class="d-flex justify-content-between">
         <h2>Case Number: {{ case.case_number }} <span class="h5">(Date Added:{{ case.date_added }})</span>  </h2>
         <p>{{global.security_status}}</p>
-        <button class="btn btn-danger"><i class='bx bx-trash me-2' ></i>Delete Case</button>
+        <button class="btn btn-danger btn-confirm-delete-case" data-case-id="{{ case.id }}" data-bs-toggle="modal" data-bs-target="#confirmDeletCase">
+            <i class='bx bx-trash me-2'></i>
+            Delete Case
+        </button>
     </div>
     <nav>
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
           <button class="nav-link custom-tab text-dark fs-4" id="nav-status-tab" data-bs-toggle="tab" data-bs-target="#nav-status" type="button" role="tab" aria-controls="nav-status" aria-selected="true">Status</button>
           <button class="nav-link custom-tab text-dark fs-4" id="nav-victim-tab" data-bs-toggle="tab" data-bs-target="#nav-victim" type="button" role="tab" aria-controls="nav-victim" aria-selected="false">Victim</button>
-          {% if case.type_of_case == 'Behalf' %}
-          <button class="nav-link custom-tab text-dark fs-4" id="nav-contact_pers-tab" data-bs-toggle="tab" data-bs-target="#nav-contact_pers" type="button" role="tab" aria-controls="nav-contact_pers" aria-selected="false">Contact Person</button>
-          {% endif %}
           <button class="nav-link custom-tab text-dark fs-4" id="nav-perpetrator-tab" data-bs-toggle="tab" data-bs-target="#nav-perpetrator" type="button" role="tab" aria-controls="nav-perpetrator" aria-selected="false">Perpetrator</button>
           <button class="nav-link custom-tab text-dark fs-4" id="nav-incident-tab" data-bs-toggle="tab" data-bs-target="#nav-incident" type="button" role="tab" aria-controls="nav-incident" aria-selected="false">Incident</button>
         </div>
@@ -76,7 +76,7 @@
                             {% empty %}
                             <tr class="border-bottom border-2">
                                 <td class="text-center"></td>
-                                <td class="text-center">No Status Yet.</td>
+                                <td class="text-start">No Status Yet.</td>
                                 <td class="text-center"></td>
                             </tr>
                             {% endfor %}
@@ -110,16 +110,33 @@
                 </div><!--end of container-->
                 <hr>
                 <div class="container pt-2 pb-3">
-                    <h1 class="text-center">Services Information</h1>
+                    <h1 class="text-center">Case Information</h1>
                     <div class="pt-2">
                         <div class="row">
                             <div class="d-flex align-items-center">
-                                <h5>Service Type:</h5>
+                                <h5>Case Type:</h5>
                                 {% if case.type_of_case == 'Impacted' %}
                                     <h5 class="lead">Impacted Victim</h5>
                                 {% elif case.type_of_case == 'Behalf' %}
                                     <h5 class="lead">Reporting on Behalf of Impacted Victim</h5>
                                 {% endif %}
+                            </div><!--end of col-->
+                        </div><!--end of row-->
+                        <div class="row">
+                            <div class="d-flex align-items-center">
+                                <h5>Service Type:</h5>
+                                {% if case.service_information == 'crisis' %}
+                                    <h5 class="lead">Crisis Intervention Including Rescue</h5>
+                                {% elif case.service_information == 'issuance' %}
+                                    <h5 class="lead">Issuance / Enforcement of Barangay Protection Order</h5>
+                                {% endif %}
+                            </div><!--end of col-->
+                        </div><!--end of row-->
+
+                        <div class="row">
+                            <div class="d-flex align-items-center">
+                                <h5>Email:</h5>
+                                <h5 class="lead"> {{ case.email }}</h5>
                             </div><!--end of col-->
                         </div><!--end of row-->
 
@@ -174,6 +191,7 @@
                     </button>
                 </div>
                 <div class="tab-content flex-grow-1" id="v-pills-tabContent">
+                {% if victims %}
                     {% for victim in victims %}
                     <div class="tab-pane fade {% if forloop.first %}show active{% endif %} h-100" id="v-pills-victim-{{ forloop.counter }}" role="tabpanel" aria-labelledby="v-pills-victim-{{ forloop.counter }}-tab" tabindex="0">
                         <div class="container-fluid h-100">
@@ -424,14 +442,151 @@
                         </div>
                     </div>
                     {% endfor %}
+                {% else %}
+                <div class="tab-pane fade show active h-100" id="v-pills-no-victim" role="tabpanel" aria-labelledby="v-pills-no-victim-tab" tabindex="0">
+                    <div class="card border border-dark border-1 border-opacity-10 shadow-lg">
+                        <div class="card-body text-center">
+                          No Victim Information Yet. 
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
                 </div>
             </div>
         </div> <!--end of div of victim tab-->
-        {% if case.type_of_case == 'Behalf' %}
         <div class="tab-pane fade" id="nav-contact_pers" role="tabpanel" aria-labelledby="nav-contact_pers">
             <h2 class="pt-3 text-center">CONTACT PERSON INFORMATION</h2>
+            {% if contact_persons  %}
+                {% for contact_person in contact_persons  %}
+                <form id="contact_person_form_{{ contact_person.id }}">
+                    <div class="row pt-5">
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_first_name_{{ contact_person.id }}" name="contact_person_first_name_{{ contact_person.id }}" value="{{ contact_person.first_name }}">
+                                <label for="contact_person_first_name_{{ contact_person.id }}">First Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_middle_name_{{ contact_person.id }}" name="contact_person_middle_name_{{ contact_person.id }}" value="{{ contact_person.middle_name }}">
+                                <label for="contact_person_middle_name_{{ contact_person.id }}">Middle Name</label>
+                            </div>
+                        </div><!--End of col-->
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_last_name_{{ contact_person.id }}" name="contact_person_last_name_{{ contact_person.id }}" value="{{ contact_person.last_name }}">
+                                <label for="contact_person_last_name_{{ contact_person.id }}">Last Name</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="contact_person_suffix_name_{{ contact_person.id }}" name="contact_person_suffix_name_{{ contact_person.id }}">
+                                    {% if global.security_status == "decrypted" %}
+                                        <option value="none" {% if contact_person.suffix == 'none' %}selected{% endif %}>N/A</option>
+                                        <option value="sr" {% if contact_person.suffix == 'sr' %}selected{% endif %}>Sr</option>
+                                        <option value="jr" {% if contact_person.suffix == 'jr' %}selected{% endif %}>Jr</option>
+                                        <option value="ii" {% if contact_person.suffix == 'ii' %}selected{% endif %}>II</option>
+                                        <option value="iii" {% if contact_person.suffix == 'iii' %}selected{% endif %}>III</option>
+                                        <option value="iv" {% if contact_person.suffix == 'iv' %}selected{% endif %}>IV</option>
+                                    {% else %}
+                                        <option value="ii" selected >{{ contact_person.suffix }}</option>
+                                    {% endif %}
+                                </select>
+                                <label for="contact_person_suffix_name_{{ contact_person.id }}">Suffix</label>
+                            </div>
+                        </div><!--End of col-->
+                    </div><!--End of row-->
+
+                    <div class="row pt-2">
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_relationship_{{ contact_person.id }}" name="contact_person_relationship_{{ contact_person.id }}" value="{{ contact_person.relationship }}">
+                                <label for="contact_person_relationship_{{ contact_person.id }}">Relationship to the Victim</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_contact-number_{{ contact_person.id }}" name="contact_person_contact-number_{{ contact_person.id }}" value="{{ contact_person.contact_number }}">
+                                <label for="contact_person_contact-number_{{ contact_person.id }}">Contact No.</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_contact-tel_{{ contact_person.id }}" name="contact_person_contact-tel_{{ contact_person.id }}" value="{{ contact_person.telephone_number }}">
+                                <label for="contact_person_contact-tel_{{ contact_person.id }}">Telephone No.</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_street_{{ contact_person.id }}" name="contact_person_contact-street_{{ contact_person.id }}" value="{{ contact_person.street }}">
+                                <label for="contact_person_street_{{ contact_person.id }}">Street</label>
+                            </div>
+                        </div><!--end of col-->
+                    </div><!--end of row-->
+
+                    <div class="row pt-2 pb-3">
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_barangay_{{ contact_person.id }}" name="contact_person_barangay_{{ contact_person.id }}" value="{{ contact_person.barangay }}">
+                                <label for="contact_person_barangay_{{ contact_person.id }}">Barangay</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_city_{{ contact_person.id }}" name="contact_person_city_{{ contact_person.id }}" value="{{ contact_person.city }}">
+                                <label for="contact_person_city_{{ contact_person.id }}">City</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_person_province_{{ contact_person.id }}" name="contact_person_province_{{ contact_person.id }}" value="{{ contact_person.province }}">
+                                <label for="contact_person_province_{{ contact_person.id }}">Province</label>
+                            </div>
+                        </div><!--end of col-->
+                        <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
+                            <div class="form-floating">
+                                <select class="form-select" id="contact_person_region_{{ contact_person.id }}" name="contact_person_region_{{ contact_person.id }}">
+                                    {% if global.security_status == "decrypted" %}
+                                        <option value="region-I" {% if contact_person.region == 'region-I' %}selected{% endif %}>Region I – Ilocos Region</option>
+                                        <option value="region-II" {% if contact_person.region == 'region-II' %}selected{% endif %}>Region II – Cagayan Valley</option>
+                                        <option value="region-III" {% if contact_person.region == 'region-III' %}selected{% endif %}>Region III – Central Luzon</option>
+                                        <option value="region-IV" {% if contact_person.region == 'region-IV' %}selected{% endif %}>Region IV‑A – CALABARZON</option>
+                                        <option value="mimaropa" {% if contact_person.region == 'mimaropa' %}selected{% endif %}>MIMAROPA Region</option>
+                                        <option value="region-V" {% if contact_person.region == 'region-V' %}selected{% endif %}>Region V – Bicol Region</option>
+                                        <option value="region-VI" {% if contact_person.region == 'region-VI' %}selected{% endif %}>Region VI – Western Visayas</option>
+                                        <option value="region-VII" {% if contact_person.region == 'region-VII' %}selected{% endif %}>Region VII – Central Visayas</option>
+                                        <option value="region-VIII" {% if contact_person.region == 'region-VIII' %}selected{% endif %}>Region VIII – Eastern Visayas</option>
+                                        <option value="region-IX" {% if contact_person.region == 'region-IX' %}selected{% endif %}>Region IX – Zamboanga Peninsula</option>
+                                        <option value="region-X" {% if contact_person.region == 'region-X' %}selected{% endif %}>Region X – Northern Mindanao</option>
+                                        <option value="region-XI" {% if contact_person.region == 'region-XI' %}selected{% endif %}>Region XI – Davao Region</option>
+                                        <option value="region-XII" {% if contact_person.region == 'region-XII' %}selected{% endif %}>Region XII – SOCCSKSARGEN</option>
+                                        <option value="region-XIII" {% if contact_person.region == 'region-XIII' %}selected{% endif %}>Region XIII – Caraga</option>
+                                        <option value="ncr" {% if contact_person.region == 'ncr' %}selected{% endif %}>NCR – National Capital Region</option>
+                                        <option value="car" {% if contact_person.region == 'car' %}selected{% endif %}>CAR – Cordillera Administrative Region</option>
+                                        <option value="barmm" {% if contact_person.region == 'barmm' %}selected{% endif %}>BARMM – Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                    {% else %}
+                                        <option value="barmm" selected>{{contact_person.region}}</option>
+                                    {% endif %}
+                                
+                                </select>
+                                <label for="perpetrator_region_{{ perpetrator.id }}">Region</label>
+                            </div>
+                        </div><!--End of col-->
+
+                    </div><!--end of row-->
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-primary save-btn-contact_person_{{ contact_person.id }}" type="submit">Save</button>
+                    </div>
+                </form>
+                {% endfor %}
+            {% else %}
+            <div class="card border border-dark border-1 border-opacity-10 shadow-lg">
+                <div class="card-body text-center">
+                  No Contact Person Information Yet. 
+                </div>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
 
         <div class="tab-pane fade" id="nav-perpetrator" role="tabpanel" aria-labelledby="nav-perpetrator">
             <h2 class="pt-3 text-center">PERPETRATOR INFORMATION</h2>
@@ -451,6 +606,7 @@
                     </button>
                 </div>
                 <div class="tab-content flex-grow-1" id="v-pills-tabContent">
+                {% if perpetrators %}
                     {% for perpetrator in perpetrators %}
                     <div class="tab-pane fade {% if forloop.first %}show active{% endif %} h-100" id="v-pills-perpetrator-{{ forloop.counter }}" role="tabpanel" aria-labelledby="v-pills-perpetrator-{{ forloop.counter }}-tab" tabindex="0">
                         <div class="container-fluid h-100">
@@ -737,6 +893,15 @@
                         </div>
                     </div>
                     {% endfor %}
+                {% else %}
+                    <div class="tab-pane fade show active h-100" id="v-pills-no-perp" role="tabpanel" aria-labelledby="v-pills-no-parent-tab" tabindex="0">
+                        <div class="card border border-dark border-1 border-opacity-10 shadow-lg">
+                            <div class="card-body text-center">
+                              No Perpetrator Information Yet. 
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
                 </div>
             </div>
         </div>
@@ -974,9 +1139,12 @@
                             {% for evidence in case.evidence.all %}
                                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                                     <div class="form-check">
+                                        <!-- Add a link to the image with target="_blank" to open it in a new tab -->
                                         <input class="form-check-input" type="checkbox" name="evidenceToDelete" value="{{ evidence.id }}">
                                         <label class="form-check-label" for="evidence{{ evidence.id }}"></label>
-                                        <img src="{{ evidence.file.url }}" alt="Evidence Image" class="img-fluid">
+                                        <a href="{{ evidence.file.url }}" target="_blank" class="image-link">
+                                            <img src="{{ evidence.file.url }}" alt="Evidence Image" class="img-fluid">
+                                        </a>
                                     </div>
                                 </div>
                             {% endfor %}
@@ -991,6 +1159,84 @@
                             <input class="form-control" type="file" id="evidence_file" name="evidence_file" multiple>
                         </div><!--form to upload-->
                     </div><!--End or row-->
+                    <hr class="pt-3">
+                    <div class="row">
+                        <h3>Witness/es:</h3>
+                        <p class="opacity-50 pb-3">(This will not be showed to others)</p>
+                        </div><!--End of row-->
+                        {% if witnesses %}
+                        <div id="witnessContainer">
+                            {% for witness in witnesses  %}
+                                <div class="row border border-opacity-25 rounded border-dark shadow" id="witness_{{ witness.id }}">
+                                    <div class="my-1">
+                                        <label class="custom-checkbox">
+                                            <input class="form-check-input" type="checkbox" name="witnesstoDelete" value="{{ witness.id }}">
+                                        </label>
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-12">
+                                        <div class="form-floating mb-3">
+                                            <input type="text" class="form-control" id="witness_name_{{ witness.id }}" name="witness_name_{{ witness.id }}" placeholder="" value="{{ witness.name }}">
+                                            <label for="witness_name_{{ witness.id }}">Name</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    <div class="col-lg-3 col-md-3 col-sm-12">
+                                        <div class="form-floating mb-3">
+                                            <textarea class="form-control" id="witness_address_{{ witness.id }}" name="witness_address_{{ witness.id }}" placeholder="">{{ witness.address }}</textarea>
+                                            <label for="witness_address_{{ witness.id }}">Address</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    <div class="col-lg-3 col-md-3 col-sm-12">
+                                        <div class="form-floating mb-3">
+                                            <input type="number" class="form-control" id="witness_number_{{ witness.id }}" name="witness_number_{{ witness.id }}" placeholder="" value="{{ witness.contact_number }}">
+                                            <label for="witness_number_{{ witness.id }}">Contact Number</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                    <div class="col-lg-3 col-md-3 col-sm-12">
+                                        <div class="form-floating mb-3">
+                                            <input type="email" class="form-control" id="witness_email_{{ witness.id }}" name="witness_email_{{ witness.id }}" placeholder="" value="{{ witness.email }}">
+                                            <label for="witness_email_{{ witness.id }}">Eye-Witness Account</label>
+                                        </div>
+                                    </div><!--End of col-->
+                                </div><!--End of row-->
+                                <br>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex justify-content-end"><button type="button" class="btn btn-primary" id="addWitnessBtn">Add Witness</button></div>
+                        {% else %}
+                        <div id="witnessContainer">
+                            <div class="row border border-opacity-25 rounded border-dark shadow" id="witness">
+                                <div class="pt-2"></div>
+                                <div class="col-lg-3 col-md-3 col-sm-12">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" class="form-control" id="witness_name" name="witness_name" placeholder="">
+                                        <label for="witness_name">Name</label>
+                                    </div>
+                                </div><!--End of col-->
+                                <div class="col-lg-3 col-md-3 col-sm-12">
+                                    <div class="form-floating mb-3">
+                                        <textarea class="form-control" id="witness_address" name="witness_address" placeholder=""></textarea>
+                                        <label for="witness_address">Address</label>
+                                    </div>
+                                </div><!--End of col-->
+                                <div class="col-lg-3 col-md-3 col-sm-12">
+                                    <div class="form-floating mb-3">
+                                        <input type="number" class="form-control" id="witness_number" name="witness_number" placeholder="">
+                                        <label for="witness_number">Contact Number</label>
+                                    </div>
+                                </div><!--End of col-->
+                                <div class="col-lg-3 col-md-3 col-sm-12">
+                                    <div class="form-floating mb-3">
+                                        <input type="email" class="form-control" id="witness_email" name="witness_email" placeholder="">
+                                        <label for="witness_email">Eye-Witness Account</label>
+                                    </div>
+                                </div><!--End of col-->
+                                <button type="button" class="btn btn-sm rounded-top-0 bg-primary border-primary"><i class='bx bx-trash text-white'></i></button>
+                            </div><!--End of row-->
+                        </div>
+                        <br>
+                        <div class="d-flex justify-content-end"><button type="button" class="btn btn-primary" id="addWitnessBtn">Add Witness</button></div>
+                        {% endif %}
+                    <br>
                     <hr class="pt-3">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end pb-3">
                         <button class="btn btn-primary" id="btnsubmitincident" type="button">Save</button>
@@ -1088,6 +1334,10 @@
                         <textarea class="form-control" id="status_text_edit" name="status_text_edit"></textarea>
                         <label for="status_text_edit">Status</label>
                     </div><!--end of status-->
+                    <div class="form-floating mb-3">
+                        <input type="datetime-local" class="form-control" id="status_date_edit" name="status_date_edit"></input>
+                        <label for="status_date_edit">Date</label>
+                    </div><!--end of status-->
                 </div><!--end of body-->
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -1120,7 +1370,7 @@
 
 <!-- Modal -->
 <div class="modal fade" id="confirmDeletCase" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="staticBackdropLabel">Delete Case</h1>
@@ -1131,7 +1381,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Yes</button>
+          <button type="button" class="btn btn-primary" id="confirmDeletCaseBtn">Yes</button>
         </div>
       </div>
     </div>
@@ -1635,6 +1885,45 @@
 {% block scripts %}
 <script>
     $(document).ready(function() {
+        $("#addWitnessBtn").click(function() {
+            var witnessDiv = `
+                <div class="row border border-opacity-25 rounded border-dark shadow mt-1 mb-2" id="witness">
+                    <div class="pt-2"></div>
+                    <div class="col-lg-3 col-md-3 col-sm-12">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" name="witness_name" placeholder="">
+                            <label for="witness_name">Name</label>
+                        </div>
+                    </div><!--End of col-->
+                    <div class="col-lg-3 col-md-3 col-sm-12">
+                        <div class="form-floating mb-3">
+                            <textarea class="form-control" name="witness_address" placeholder=""></textarea>
+                            <label for="witness_address">Address</label>
+                        </div>
+                    </div><!--End of col-->
+                    <div class="col-lg-3 col-md-3 col-sm-12">
+                        <div class="form-floating mb-3">
+                            <input type="number" class="form-control" name="witness_number" placeholder="">
+                            <label for="witness_number">Contact Number</label>
+                        </div>
+                    </div><!--End of col-->
+                    <div class="col-lg-3 col-md-3 col-sm-12">
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" name="witness_email" placeholder="">
+                            <label for="witness_email">Eye-Witness Account</label>
+                        </div>
+                    </div><!--End of col-->
+                    <button type="button" class="btn btn-sm rounded-top-0 bg-primary border-primary deleteWitnessBtn"><i class='bx bx-trash text-white'></i></button>
+                </div><!--End of row-->
+                <br>
+            `;
+            $("#witnessContainer").append(witnessDiv);
+        });
+
+        // Delete witness
+        $(document).on("click", ".deleteWitnessBtn", function() {
+            $(this).closest(".row").remove();
+        });
         $('#table-status').DataTable({
             dom: 'Brt <"bottom"lp>',
             responsive: true,
@@ -1702,6 +1991,7 @@
                     if (response.success) {
                         // Populate the modal with status information
                         $('#status_text_edit').val(response.status_description);
+                        $('#status_date_edit').val(response.status_date);
                         $('#statusId').val(statusId);
                         $('#statusEdit').modal('show'); // Open the modal
                     } else {
@@ -1726,6 +2016,7 @@
             // Get the status ID and updated description from the form
             var statusId = $('#statusId').val();
             var updatedDescription = $('#status_text_edit').val();
+            var updatedDate = $('#status_date_edit').val();
 
             // AJAX request to update the status
             $.ajax({
@@ -1733,6 +2024,7 @@
                 url: '/edit_status/' + statusId + '/',  // URL to update status information
                 data: {
                     'new_description': updatedDescription,
+                    'new_date': updatedDate,
                     'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()  // Add CSRF token
                 },
                 dataType: 'json',
@@ -1805,10 +2097,79 @@
                 });
             });
         });
+        // Function to handle the confirmation of case deletion
+        $('.btn-confirm-delete-case').click(function() {
+            var caseId = $(this).data('case-id');
+            $('#confirmDeletCase').modal('show'); // Show the confirmation modal
+            // Set the caseId as data attribute of the confirmation button
+            console.log(caseId)
+            $('#confirmDeletCaseBtn').data('case-id', caseId);
+        });
 
+        $('#confirmDeletCaseBtn').click(function() {
+            var caseId = $(this).data('case-id');
+        
+            $.ajax({
+                method: 'POST',
+                url: '{% url "delete_case" %}',
+                data: { case_id: caseId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Display success message
+                        $('#successToast .toast-body').text(response.message);
+                        $('#successToast').toast('show');
+                        // Reload the page after 2 seconds
+                        setTimeout(function() {
+                            window.location.href = '{% url "barangay case" %}';
+                        }, 2000);
+                    } else {
+                        // Display error message
+                        $('#errorToast .toast-body').text(response.message);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle error
+                    console.error('Error deleting case:', error);
+                }
+            });
+        });
+
+        $('.btn-check-update').on('change', function() {
+            var status = $(this).data('status');
+            var caseId = {{ case.pk }};
+            var csrfToken = '{{ csrf_token }}';  // Fetch CSRF token from the cookie
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "update_case_status" case_id=0 %}'.replace('0', caseId),
+                data: {'status_case': status, 'csrfmiddlewaretoken': csrfToken},  // Include CSRF token in the data
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        console.log('Case status updated successfully');
+                        $('.toast-body').text('Case status updated successfully');
+                        $('#successToast').toast('show');
+                    } else {
+                        console.error('Failed to update case status:', response.error);
+                        $('.toast-body').text('Failed to update case status:', response.error);
+                        $('#errorToast').toast('show');
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    console.error('Failed to update case status:', errmsg);
+                    $('.toast-body').text('Failed to update case status:', errmsg);
+                    $('#errorToast').toast('show');
+                }
+            });
+        });
 
     });
+
     document.addEventListener("DOMContentLoaded", function() {
+
         // Get today's date in the format YYYY-MM-DD
         var today = new Date().toISOString().split('T')[0];
 
@@ -1991,7 +2352,6 @@
                 }
             });
         });
-
         // Function to set the active tab
         function setActiveTab() {
             // Get the ID of the last active tab from localStorage
@@ -2073,6 +2433,7 @@
 
                 // Get the perpetrator ID from the form's ID
                 const perpetratorId = this.id.split('_')[2];
+                console.log(perpetratorId);
 
                 // Get the form data
                 const formData = new FormData(this);
@@ -2113,6 +2474,7 @@
                 });
             });
         });
+
 
         // Add event listener for the window load event
         window.addEventListener('load', setActiveTab);

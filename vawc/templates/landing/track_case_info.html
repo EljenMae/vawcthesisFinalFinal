@@ -1,0 +1,88 @@
+{% extends "../base/base.html" %}
+{% block title %}Track Case Info{% endblock %}
+{% load static %}
+{% load custom_filter %}
+{% block content %}
+<div class="container pt-5 pb-5">
+    <div class="card">
+        <div class="card-body">
+            <a href="{% url 'track_case' %}"><button type="button" class="btn-close d-flex ms-auto" aria-label="Close"></button></a>
+            <br>
+            <p class="h4 ms-lg-5">Email: <span class="lead">{{ user_email }}</span></p>
+            <div class="d-lg-flex align-items-start px-xl-5 px-lg-5 px-0">
+                <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    {% for case in cases %}
+                    <button class="nav-link custom-nav-link {% if forloop.first %}active{% endif %} mb-2" id="case-tab-{{ case.pk }}" data-bs-toggle="pill" data-bs-target="#case-{{ case.pk }}" type="button" role="tab" aria-controls="case-{{ case.pk }}" aria-selected="{{ forloop.first }}">Case No.  {{ case.case_number }}</button>
+                    {% endfor %}
+                </div>
+                <div class="tab-content flex-grow-1" id="v-pills-tabContent">
+                    {% for case in cases %}
+                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %} row" id="case-{{ case.pk }}" role="tabpanel" aria-labelledby="case-tab-{{ case.pk }}" tabindex="0">
+                        <div class="col-12">
+                            <h5>Status: <span class="lead h5">{{ case.status }}</span></h5>
+                            <h5>Case Type:
+                                {% if case.type_of_case == 'Impacted' %}
+                                    <span class="lead">Impacted Victim</span>
+                                {% elif case.type_of_case == 'Behalf' %}
+                                    <span class="lead">Reporting on Behalf of Impacted Victim</span>
+                                {% endif %}
+                            </h5>
+                            <h5>Service Type:
+                                {% if case.service_information == 'crisis' %}
+                                    <span class="lead">Crisis Intervention Including Rescue</span>
+                                {% elif case.service_information == 'issuance' %}
+                                    <span class="lead">Issuance / Enforcement of Barangay Protection Order</span>
+                                {% endif %}
+                            </h5>
+
+                            <p>Date Reported: {{ case.date_added }}</p>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Latest Status</h5>
+                                    {% with latest_status=case.status_history|get_latest_status %}
+                                    {% if latest_status %}
+                                    <h6 class="card-subtitle mb-2 text-muted">Date Added: {{ latest_status.status_date_added }}</h6>
+                                    <p class="card-text">{{ latest_status.status_description }}</p>
+                                    {% else %}
+                                    <p class="card-text">No status history available.</p>
+                                    {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                            <div class="pt-1">
+                                <table class="table table-striped nowrap" id="table-status" style="width:100%">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col" class="col-4 align-middle">Date of Status Added</th>
+                                            <th scope="col" class="col-8 align-middle">Status Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for status_history in case.status_history.all %}
+                                        <tr class="border-2">
+                                            <td class="align-middle">{{ status_history.status_date_added }}</td>
+                                            <td class="align-middle">{{ status_history.status_description }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr class="border-2">
+                                            <td class="text-center"></td>
+                                            <td class="text-start align-middle">No Status Yet.</td>
+                                            <td class="text-center"></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div><!--end of div of table-->
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock content %}
+{% block scripts %}
+{% endblock scripts %}

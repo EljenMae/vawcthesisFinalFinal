@@ -25,6 +25,7 @@
                 <input type="hidden" name="type_of_case" value="Behalf">
                 <input type="hidden" id="victim_count" name="victim_count" value="1">
                 <input type="hidden" id="perpetrator_count" name="perpetrator_count" value="1">
+                <input type="hidden" id="email-confirmed" name="email-confirmed">
                 <!--single form panel-->
                 <div class="multisteps-form__panel shadow p-4 rounded bg-white js-active" data-animation="slideHorz">
                     <div class="multisteps-form__content">
@@ -222,7 +223,7 @@
     
                                     <div class="col-lg-3 col-md-3 col-sm-8 pb-2">
                                         <label for="perp-date-of-birth_0" class="form-label">Date of Birth: </label>
-                                        <input type="date" class="form-control" id="perp-date-of-birth_0" name="perp-date-of-birth_0" value="0">
+                                        <input type="date" class="form-control" id="perp-date-of-birth_0" name="perp-date-of-birth_0" value="2024-03-01">
                                     </div>
     
                                     <div class="col-lg-3 col-md-3 col-sm-8 pb-2">
@@ -473,11 +474,10 @@
                                 <label for="contact-street" class="form-label">Street: </label>
                                 <input type="text" class="form-control" id="contact-street" name="contact-street">
                             </div><!--end of col-->
-                            
                         </div><!--end of row-->
-                    
+
                         <div class="row pt-2 pb-3">
-                            <div class="col-lg-2 col-md-4 col-sm-12 pb-2">
+                            <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
                                 <label for="contact-barangay" class="form-label">Barangay: </label>
                                 <input type="text" class="form-control" id="contact-barangay" name="contact-barangay">
                             </div><!--end of col-->
@@ -489,7 +489,7 @@
                                 <label for="contact-province" class="form-label">Province: </label>
                                 <input type="text" class="form-control" id="contact-province" name="contact-province" placeholder="Province">
                             </div><!--end of col-->
-                            <div class="col-lg-4 col-md-4 col-sm-12 pb-2">
+                            <div class="col-lg-3 col-md-4 col-sm-12 pb-2">
                                 <label for="contact-region" class="form-label">Region: </label>
                                 <select id="contact-region" name="contact-region" class="form-select">
                                     <option value="region-I">Region I – Ilocos Region</option>
@@ -537,7 +537,7 @@
 
                         <div class="d-flex justify-content-between mt-4">
                             <button class="btn btn-outline-primary js-btn-prev" type="button" title="Prev">Prev</button>
-                            <button class="btn btn-primary ml-auto" type="submit" title="Send">Submit</button>
+                            <button class="btn btn-primary ml-auto btn-form-submit" type="submit" title="Send" id="submitBtn">Submit</button>
                         </div>
                     </div>
                 </div>
@@ -546,7 +546,7 @@
       </div>
     </div>
 </div>
-<!-- Modal -->
+<!-- Modal success -->
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -563,6 +563,73 @@
         <div class="modal-footer">
             <a type="button" class="btn btn-primary" href="{% url 'home' %}">Back to HomePage</a>
         </div>
+        </div>
+    </div>
+</div>
+<!-- Email Modal -->
+<div class="modal fade" id="sendEmail" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Email Confirmation</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="emailConfirmationForm">
+                <div class="modal-body">
+                    <h3 class="text-center">Before We Can Process Your Case.</h3>
+                    <p class="py-1 fs-4 text-center">Please Enter Your Email First</p>
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="email-confirm" name="email-confirm" placeholder="name@example.com">
+                        <label for="floatingInput">Email address</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="send_email_confirmation">Confirm Email</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- OTP Modal -->
+<div class="modal fade" id="otpModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="otpModalToggleLabel">One-Time Password Verification</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-center">Please enter the one-time password to verify your account</h6>
+                <div class="text-center mt-3">
+                    <span>A code has been sent to</span>
+                    <small id="hidden_email">*****gmail.com</small>
+                </div>
+                <form id="otpForm" method="post">
+                    {% csrf_token %}
+                    <div id="otp" class="inputs d-flex justify-content-center mt-4">
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_1" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_2" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_3" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_4" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_5" maxlength="1" />
+                        <input class="m-2 text-center form-control rounded" type="text" name="otp_6" maxlength="1" />
+                    </div>
+                    <div class="text-center mt-4">
+                        <button class="btn btn-primary px-4" type="submit">Validate</button>
+                    </div>
+                    <div class="text-center mt-3 text-danger" style="display: none;">
+                        <i class='bx bx-error-circle'></i>
+                        <span id="otpErrorMessage"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="content d-flex justify-content-center align-items-center">
+                    <span id="resendText">Didn't get the code</span>
+                    <a href="#" id="resendButton" class="text-decoration-none ms-3">Resend</a>
+                    <span id="resendTimer" class="text-decoration-none ms-3"></span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -596,31 +663,111 @@
     }
     
     $(document).ready(function() {
+        let goForSubmission = false
         // Intercept the form submission
         $('#impact-victim-form').submit(function(e) {
             e.preventDefault(); // Prevent the default form submission
-    
-            // Perform an AJAX request
-            var formData = new FormData(this); // Create FormData object from the form
-            $.ajax({
-                type: 'POST',
-                url: $(this).attr('action'), // Get the form's action attribute
-                data: formData, // Use FormData object for file uploads
-                contentType: false, // Prevent jQuery from automatically setting contentType
-                processData: false, // Prevent jQuery from automatically processing data
-                dataType: 'json', // Expect JSON response
-                success: function(response) {
-                    if (response.success) {
-                        $('#staticBackdrop').modal('show'); // Show the success modal
-                    } else {
+
+            if (!goForSubmission) {
+                // Show send email modal
+                $('#sendEmail').modal('show');
+            } else {
+                // Submitting form to database
+
+                var formData = new FormData(this); // Create FormData object from the form
+                $.ajax({
+                    type: 'POST',
+                    url: $(this).attr('action'), // Get the form's action attribute
+                    data: formData, // Use FormData object for file uploads
+                    contentType: false, // Prevent jQuery from automatically setting contentType
+                    processData: false, // Prevent jQuery from automatically processing data
+                    dataType: 'json', // Expect JSON response
+                    success: function(response) {
+                        if (response.success) {
+                            $('#staticBackdrop').modal('show'); // Show the success modal
+                        } else {
+                            // Show error toast if response indicates failure
+                            showToast('error', 'An error occurred. Please try again.');
+                        }
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        console.error('Error:', errorThrown);
                         // Show error toast if response indicates failure
                         showToast('error', 'An error occurred. Please try again.');
                     }
+                });
+            }
+
+        });
+
+        // email confirmation
+        $('#emailConfirmationForm').submit(function(e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            // Check if the input is email address
+            var emailValue = $('#email-confirm').val();
+
+            // For example, you can log it to the console
+            console.log("Email entered: " + emailValue);
+
+            $.ajax({
+                url: '{% url 'email_confirm'  %}', // Modify the URL to point to your Django view endpoint
+                type: 'POST',
+                data: { emailConfirm: emailValue }, // Pass the email value in the data object
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}' // Include the CSRF token using Django's template syntax
+                },
+                success: function(response) {
+                    // Handle success response
+                    console.log(response); // Log the response to the console
+
+                    // Hide the email modal
+                    $('#sendEmail').modal('hide');
+
+                    // Show the OTP modal
+                    $('#otpModal').modal('show');
                 },
                 error: function(xhr, textStatus, errorThrown) {
                     console.error('Error:', errorThrown);
                     // Show error toast if response indicates failure
                     showToast('error', 'An error occurred. Please try again.');
+                }
+            });
+        });
+
+        // otp checking
+        $('#otpForm').submit(function(e) {
+            e.preventDefault(); // Prevent the default form submission
+            var formData = $(this).serialize();
+            $.ajax({
+                type: 'POST',
+                url: '{% url "verify_otp_email" %}',
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        $('#successMessage').text(response.message);
+                        // hide otp modal
+                        $('#otpModal').modal('hide');
+                        var emailValue = $('#email-confirm').val();
+                        console.log("Email entered(OTP): " + emailValue);
+                        $('#email-confirmed').val(emailValue);
+                        goForSubmission = true
+
+                        // to trigger button of main form
+                        document.querySelector(".btn-form-submit").click()
+                        // Log success message to the console
+                        console.log('OTP verification successful.');
+                    } else {
+                        $('#otpErrorMessage').text(response.message);
+                        if (response.message === 'OTP has expired.' || response.message === 'Incorrect OTP.') {
+                            $('.text-danger').show(); // Show the error message div
+                        }
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    $('#otpErrorMessage').text('Error occurred. Please try again.');
+                    // Log error message to the console
+                    console.error('Error occurred during OTP verification:', errmsg);
                 }
             });
         });

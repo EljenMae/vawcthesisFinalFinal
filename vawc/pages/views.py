@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponseNotFound, QueryDict
+from django.http import JsonResponse, HttpResponseNotFound, QueryDict, HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.http import require_POST
@@ -21,6 +21,10 @@ from django.template.loader import render_to_string
 import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
+from datetime import timedelta
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.crypto import get_random_string
+from django.contrib.auth.models import User
 # Create your views here.
 
 from .utils import encrypt_data, decrypt_data
@@ -33,8 +37,85 @@ from account.models import *
 def home_view (request):
     return render(request, 'landing/home.html')
 
+def error_view (request):
+    return render(request, 'landing/error_404.html')
+
 def login_view (request):
     return render(request, 'login/login.html')
+
+def track_case_view (request):
+    return render(request, 'landing/track_case.html')
+
+def check_email_case(request):
+    if request.method == 'POST':
+        email = request.POST.get('email', None)  # Get the email from the POST data
+        if email:
+            # Check if there is any case associated with the given email
+            if Case.objects.filter(email=email).exists():
+                return JsonResponse({'success': True, 'message': 'There is an Email associated with at least one case.'})
+            else:
+                return JsonResponse({'success': False, 'message': 'There is no Email associated with any case.'})
+        else:
+            return JsonResponse({'success': False, 'message': 'No email provided.'})
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+# Set expiration time for tokens (30 minutes)
+TOKEN_EXPIRATION_TIMEDELTA = timedelta(minutes=30)
+
+def verify_otp_email_track_case(request):
+    if request.method == 'POST':
+        otp_entered = ''
+        for i in range(1, 7):  # Iterate through OTP fields from 1 to 6
+            otp_entered += request.POST.get(f'otp_{i}', '')
+
+        otp_saved = request.session.get('otp')
+        otp_expiry_str = request.session.get('otp_expiry')
+        user_email = request.session.get('user_email')  # Retrieving user email from session
+        print(user_email)
+
+        if otp_saved and otp_expiry_str and user_email:  # Check if user_email exists
+            otp_expiry = timezone.datetime.fromisoformat(otp_expiry_str)
+            if timezone.now() < otp_expiry and otp_entered == otp_saved:
+                # Clear session data after successful OTP verification
+                request.session.pop('otp')
+                request.session.pop('otp_expiry')
+                request.session.pop('user_email')
+                print('OTP Verified Succesfully, Used Email:', user_email)
+
+                # Generate a unique token for password reset using Django's default_token_generator
+                token = generate_token(user_email)
+
+                return JsonResponse({'success': True, 'message': 'OTP verified successfully.', 'user_email': user_email, 'token': token})
+            elif timezone.now() >= otp_expiry:
+                return JsonResponse({'success': False, 'message': 'OTP has expired.'})
+        return JsonResponse({'success': False, 'message': 'Incorrect OTP.', 'user_email': user_email})
+
+def generate_token(user_email):
+    # Create a temporary user object with the email address
+    temp_user = User(email=user_email)
+    # Generate a unique token for password reset using Django's default_token_generator
+    token = default_token_generator.make_token(temp_user)
+    # Get current timestamp
+    timestamp = timezone.now()
+    return token
+
+def track_case_info_view(request, user_email, token):
+    try:
+        # Create a temporary user object with the email address
+        temp_user = User(email=user_email)
+    except User.DoesNotExist:
+        return redirect('error_view')
+
+    # Check if the token is valid for the temporary user
+    if not default_token_generator.check_token(temp_user, token):
+        return redirect('error_view')
+
+    # Fetch cases related to the user_email and prefetch related status history
+    cases = Case.objects.filter(email=user_email).prefetch_related('status_history')
+
+    # Token is valid, render the template
+    return render(request, 'landing/track_case_info.html', {'user_email': user_email, 'token': token, 'cases': cases})
 
 @login_required
 def logout_view(request):
@@ -143,7 +224,7 @@ def verify_otp(request):
                         # Print a success message
                         print("User logged in successfully")
                         print(account_type)
-                        
+
                         request.session['security_status'] = "encrypted"
                         print(request.session['security_status'])
 
@@ -179,6 +260,57 @@ def resend_otp(request):
     else:
         return JsonResponse({'success': False, 'message': 'Invalid request method.'})
 
+def email_confirm(request):
+    if request.method == 'POST':
+        email = request.POST.get('emailConfirm')
+        print('Email Inputted:',email)
+
+        otp = generate_otp()
+        request.session['otp'] = otp
+        request.session['user_email'] = email  # Store user email in session for later retrieval
+        otp_expiry = timezone.now() + timezone.timedelta(minutes=5)
+        request.session['otp_expiry'] = otp_expiry.isoformat()  # Convert datetime to string
+        send_otp_email(email, otp)
+        return JsonResponse({'success': True, 'message': 'OTP has been sent to your email.'})
+
+
+def verify_otp_email(request):
+    if request.method == 'POST':
+        otp_entered = ''
+        for i in range(1, 7):  # Iterate through OTP fields from 1 to 6
+            otp_entered += request.POST.get(f'otp_{i}', '')
+
+        otp_saved = request.session.get('otp')
+        otp_expiry_str = request.session.get('otp_expiry')
+        user_email = request.session.get('user_email')  # Retrieving user email from session
+        print(user_email)
+
+        if otp_saved and otp_expiry_str and user_email:  # Check if user_email exists
+            otp_expiry = timezone.datetime.fromisoformat(otp_expiry_str)
+            if timezone.now() < otp_expiry and otp_entered == otp_saved:
+                # Clear session data after successful OTP verification
+                request.session.pop('otp')
+                request.session.pop('otp_expiry')
+                request.session.pop('user_email')
+                return JsonResponse({'success': True, 'message': 'OTP verified successfully.', 'user_email': user_email})
+            elif timezone.now() >= otp_expiry:
+                return JsonResponse({'success': False, 'message': 'OTP has expired.'})
+        return JsonResponse({'success': False, 'message': 'Incorrect OTP.', 'user_email': user_email})
+
+
+
+def resend_otp_email(request):
+    if request.method == 'GET':
+        user_email = request.session.get('user_email')  # Corrected key
+        otp = generate_otp()  # Assuming you have a function to generate OTP
+        request.session['otp'] = otp
+        otp_expiry = timezone.now() + timezone.timedelta(minutes=5)
+        request.session['otp_expiry'] = otp_expiry.isoformat()
+        send_otp_email(user_email, otp)  # Assuming you have a function to send OTP email
+        return JsonResponse({'success': True, 'message': 'OTP resent successfully.'})
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
 
 def report_violence_view (request):
     return render(request, 'landing/report_violence.html')
@@ -191,11 +323,12 @@ def behalf_victim_view (request):
 
 def add_case(request):
     if request.method == 'POST':
-        
-        email = request.POST.get('email-confirm')
+        email = request.POST.get('email-confirmed')
+        print('Entered Email:', email)
+
         # Create a new QueryDict object
         modified_post_data = QueryDict('', mutable=True)
-        
+
         # Attributes to ignore for encryption
         ignore_key = [
             'type_of_case',
@@ -218,12 +351,12 @@ def add_case(request):
                 for value in values:
                     modified_values.append(encrypt_data(value).decode('utf-8'))
             modified_post_data.setlist(key, modified_values)
-        
+
         request.POST = modified_post_data
-        
+
         case_data = {
             'case_number': get_next_case_number(),
-            'email': email,
+            'email':email,
             'date_latest_incident': request.POST.get('date-latest-incident'),
             'incomplete_date': request.POST.get('incomplete-date'),
             'place_of_incident': request.POST.get('place-incident'),
@@ -335,8 +468,34 @@ def get_contact_person_data(post_data):
     return contact_person_data
 
 
+def add_new_case(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        type_of_case = request.POST.get('case_type')
+        service_information = request.POST.get('service_type')
+        status_case = request.POST.get('status_case')
+
+        try:
+            # Create and save the new case instance
+            case = Case.objects.create(
+                case_number=get_next_case_number(),
+                email=email,
+                type_of_case=type_of_case,
+                service_information=service_information,
+                status=status_case,  # Fixed field name
+                date_added=timezone.now()  # Assign the current timestamp
+            )
+            # Return the case_id upon successful creation
+            return JsonResponse({'success': True, 'case_id': case.id, 'type_of_case': type_of_case})
+            #return redirect('barangay case') 
+        except Exception as e:
+            # Return error response if creation fails
+            return JsonResponse({'success': False, 'error': str(e)})
+    else:
+        return HttpResponse("Method not allowed", status=405)
+
 @login_required
-def view_case(request, case_id):
+def view_case_behalf(request, case_id):
     try:
         # Retrieve the case object from the database based on the case_id
         case = Case.objects.get(id=case_id)
@@ -346,12 +505,12 @@ def view_case(request, case_id):
         victims = Victim.objects.filter(case_victim=case)
         perpetrators = Perpetrator.objects.filter(case_perpetrator=case)
         status_history = Status_History.objects.filter(case_status_history=case)
-        
+
         # Retrieve only the latest status history entry
         latest_status_history = status_history.order_by('-status_date_added').first()
-        
+
         print(request.session['security_status'])
-        
+
         if request.session['security_status'] == "decrypted":
             case.street = decrypt_data(case.street)
             case.barangay = decrypt_data(case.barangay)
@@ -361,7 +520,7 @@ def view_case(request, case_id):
             case.region = decrypt_data(case.region)
             case.description_of_incident = decrypt_data(case.description_of_incident)
             case.city = decrypt_data(case.city)
-            
+
             # for victim in victims:
             #     victim.description
             for victim in victims:
@@ -381,7 +540,7 @@ def view_case(request, case_id):
                 victim.province = decrypt_data(victim.province)
                 victim.city = decrypt_data(victim.city)
                 victim.region = decrypt_data(victim.region)
-                
+
             for perpetrator in perpetrators:
                 perpetrator.relationship_to_victim = decrypt_data(perpetrator.relationship_to_victim)
                 perpetrator.first_name = decrypt_data(perpetrator.first_name)
@@ -391,6 +550,9 @@ def view_case(request, case_id):
                 perpetrator.identifying_marks = decrypt_data(perpetrator.identifying_marks)
                 perpetrator.alias = decrypt_data(perpetrator.alias)
                 perpetrator.sex = decrypt_data(perpetrator.sex)
+                #perpetrator.contact_number = decrypt_data(perpetrator.contact_number)
+                #perpetrator.telephone_number = decrypt_data(perpetrator.telephone_number)
+                print(perpetrator.contact_number)
                 perpetrator.date_of_birth = decrypt_data(perpetrator.date_of_birth)
                 perpetrator.nationality = decrypt_data(perpetrator.nationality)
                 perpetrator.house_information = decrypt_data(perpetrator.house_information)
@@ -398,7 +560,36 @@ def view_case(request, case_id):
                 perpetrator.barangay = decrypt_data(perpetrator.barangay)
                 perpetrator.province = decrypt_data(perpetrator.province)
                 perpetrator.region = decrypt_data(perpetrator.region)
-        
+            
+            print("contact")
+            for contact_person in contact_persons:
+                contact_person.first_name = decrypt_data(contact_person.first_name)
+                contact_person.middle_name = decrypt_data(contact_person.middle_name)
+                contact_person.last_name = decrypt_data(contact_person.last_name)
+                contact_person.barangay = decrypt_data(contact_person.barangay)
+                contact_person.city = decrypt_data(contact_person.city)
+                contact_person.province = decrypt_data(contact_person.province)
+                contact_person.telephone_number = decrypt_data(contact_person.telephone_number)
+
+                # contact num
+                # region
+                # street
+                # relationship
+                # suffix
+
+            # for contact_person in contact_persons:
+            #     contact_person.first_name = decrypt_data(contact_person.first_name)
+            #     contact_person.middle_name = decrypt_data(contact_person.middle_name)
+            #     contact_person.last_name = decrypt_data(contact_person.last_name)
+            #     contact_person.suffix = decrypt_data(contact_person.suffix)
+            #     contact_person.relationship= decrypt_data(contact_person.relationship)
+            #     contact_person.contact_number = decrypt_data(contact_person.contact_number)
+            #     contact_person.telephone_number = decrypt_data(contact_person.telephone_number)
+            #     contact_person.street = decrypt_data(contact_person.street)
+            #     contact_person.city = decrypt_data(contact_person.city)
+            #     contact_person.barangay = decrypt_data(contact_person.barangay)
+            #     contact_person.province = decrypt_data(contact_person.province)
+            #     contact_person.region = decrypt_data(contact_person.region)
 
         #print(decrypt_data(case.street))
         # if isinstance(encrypted_data_from_db, bytes):
@@ -412,7 +603,7 @@ def view_case(request, case_id):
         #     print("Decrypted: ", decrypt_data(encryted_value))
 
         # Render the view-case.html template with the case and related objects as context
-        return render(request, 'barangay-admin/case/view-case.html', {
+        return render(request, 'barangay-admin/case/view-case-behalf.html', {
             'case': case,
             'contact_persons': contact_persons,
             'evidence': evidences,
@@ -420,11 +611,94 @@ def view_case(request, case_id):
             'perpetrators': perpetrators,
             'status_histories': status_history,
             'latest_status_history': latest_status_history,
-            'global': request.session
+            'global': request.session,
         })
     except Case.DoesNotExist:
         # Handle case not found appropriately, for example, return a 404 page
         return HttpResponseNotFound("Case not found")
+
+@login_required
+def view_case_impact(request, case_id):
+    try:
+        # Retrieve the case object from the database based on the case_id
+        case = Case.objects.get(id=case_id)
+        # Retrieve related objects such as evidence, victims, perpetrators, and parents
+        evidences = Evidence.objects.filter(case=case)
+        victims = Victim.objects.filter(case_victim=case)
+        perpetrators = Perpetrator.objects.filter(case_perpetrator=case)
+        status_history = Status_History.objects.filter(case_status_history=case)
+        witnesses = Witness.objects.filter(case_witness=case)
+
+        # Retrieve only the latest status history entry
+        latest_status_history = status_history.order_by('-status_date_added').first()
+
+        print(request.session['security_status'])
+
+        if request.session['security_status'] == "decrypted":
+            case.street = decrypt_data(case.street)
+            case.barangay = decrypt_data(case.barangay)
+            case.date_latest_incident = decrypt_data(case.date_latest_incident)
+            case.place_of_incident = decrypt_data(case.place_of_incident)
+            case.province = decrypt_data(case.province)
+            case.region = decrypt_data(case.region)
+            case.description_of_incident = decrypt_data(case.description_of_incident)
+            case.city = decrypt_data(case.city)
+
+            # for victim in victims:
+            #     victim.description
+            for victim in victims:
+                victim.first_name = decrypt_data(victim.first_name)
+                victim.middle_name = decrypt_data(victim.middle_name)
+                victim.last_name = decrypt_data(victim.last_name)
+                victim.suffix = decrypt_data(victim.suffix)
+                victim.date_of_birth = decrypt_data(victim.date_of_birth)
+                victim.sex = decrypt_data(victim.sex)
+                victim.civil_status = decrypt_data(victim.civil_status)
+                victim.nationality = decrypt_data(victim.nationality)
+                victim.contact_number = decrypt_data(victim.contact_number)
+                victim.telephone_number = decrypt_data(victim.telephone_number)
+                victim.house_information = decrypt_data(victim.house_information)
+                victim.street = decrypt_data(victim.street)
+                victim.barangay = decrypt_data(victim.barangay)
+                victim.province = decrypt_data(victim.province)
+                victim.city = decrypt_data(victim.city)
+                victim.region = decrypt_data(victim.region)
+
+            for perpetrator in perpetrators:
+                perpetrator.relationship_to_victim = decrypt_data(perpetrator.relationship_to_victim)
+                perpetrator.first_name = decrypt_data(perpetrator.first_name)
+                perpetrator.middle_name = decrypt_data(perpetrator.middle_name)
+                perpetrator.last_name = decrypt_data(perpetrator.last_name)
+                perpetrator.suffix = decrypt_data(perpetrator.suffix)
+                perpetrator.identifying_marks = decrypt_data(perpetrator.identifying_marks)
+                perpetrator.alias = decrypt_data(perpetrator.alias)
+                perpetrator.sex = decrypt_data(perpetrator.sex)
+                #perpetrator.contact_number = decrypt_data(perpetrator.contact_number)
+                #perpetrator.telephone_number = decrypt_data(perpetrator.telephone_number)
+                print(perpetrator.contact_number)
+                perpetrator.date_of_birth = decrypt_data(perpetrator.date_of_birth)
+                perpetrator.nationality = decrypt_data(perpetrator.nationality)
+                perpetrator.house_information = decrypt_data(perpetrator.house_information)
+                perpetrator.street = decrypt_data(perpetrator.street)
+                perpetrator.barangay = decrypt_data(perpetrator.barangay)
+                perpetrator.province = decrypt_data(perpetrator.province)
+                perpetrator.region = decrypt_data(perpetrator.region)
+
+        # Render the view-case.html template with the case and related objects as context
+        return render(request, 'barangay-admin/case/view-case-impacted.html', {
+            'case': case,
+            'evidence': evidences,
+            'victims': victims,
+            'perpetrators': perpetrators,
+            'status_histories': status_history,
+            'witnesses': witnesses,
+            'latest_status_history': latest_status_history,
+            'global': request.session,
+        })
+    except Case.DoesNotExist:
+        # Handle case not found appropriately, for example, return a 404 page
+        return HttpResponseNotFound("Case not found")
+
 
 @require_POST
 def save_victim_data(request, victim_id):
@@ -521,6 +795,7 @@ def add_new_victim(request):
     except Exception as e:
         # Return error response
         return JsonResponse({'success': False, 'message': str(e)})
+
 @require_POST
 def add_new_perpetrator(request):
     try:
@@ -589,11 +864,12 @@ def add_new_perpetrator(request):
         # Return error response
         return JsonResponse({'success': False, 'message': str(e)})
 
+
 @require_POST
 def save_perpetrator_data(request, perpetrator_id):
     try:
         perpetrator = get_object_or_404(Perpetrator, id=perpetrator_id)
-        
+
         # Update perpetrator data
         perpetrator.first_name = request.POST.get('perpetrator_first_name_' + str(perpetrator_id))
         perpetrator.middle_name = request.POST.get('perpetrator_middle_name_' + str(perpetrator_id))
@@ -631,7 +907,85 @@ def delete_perpetrator(request):
     perpetrator_id = request.POST.get('perpetrator_id')
     perpetrator = get_object_or_404(Perpetrator, id=perpetrator_id)
     perpetrator.delete()
-    return JsonResponse({'success': True, 'message': 'Perpetrator deleted successfully'})
+    return JsonResponse({'success': True, 'message': 'Perpetrator and related Parents deleted successfully'})
+
+@require_POST
+def delete_case(request):
+    case_id = request.POST.get('case_id')
+    print('Case ID:', case_id)
+    case = get_object_or_404(Case, id=case_id)
+    case.delete()
+    return JsonResponse({'success': True, 'message': 'Case Deleted successfully'})
+
+def add_new_contact_person(request):
+    try:
+        case_id = request.POST.get('case_id')
+        case_instance = get_object_or_404(Case, id=case_id)
+
+        # Update contact_person data
+        first_name = request.POST.get('contact_person_first_name')
+        middle_name = request.POST.get('contact_person_middle_name')
+        last_name = request.POST.get('contact_person_last_name')
+        suffix = request.POST.get('contact_person_suffix_name')
+        relationship = request.POST.get('contact_person-relationship')
+        contact_number = request.POST.get('contact_person_contact-number')
+        telephone_number = request.POST.get('contact_person_contact-tel')
+        street = request.POST.get('contact_person_street')
+        barangay = request.POST.get('contact_person_barangay')
+        province = request.POST.get('contact_person_province')
+        city = request.POST.get('contact_person_city')
+        region = request.POST.get('contact_person_region')
+
+        # Create and save the new victim instance
+        contact_person = Contact_Person.objects.create(
+            case_contact=case_instance,
+            first_name=first_name,
+            middle_name=middle_name,
+            last_name=last_name,
+            suffix=suffix,
+            relationship=relationship,
+            contact_number=contact_number,
+            telephone_number=telephone_number,
+            street=street,
+            barangay=barangay,
+            province=province,
+            city=city,
+            region=region
+        )
+
+
+        return JsonResponse({'success': True, 'message': 'Contact Person added successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+
+@require_POST
+def save_contact_person_data(request, contact_person_id):
+    try:
+        contact_person = get_object_or_404(Contact_Person, id=contact_person_id)
+
+        # Update contact_person data
+        contact_person.first_name = encrypt_data(request.POST.get('contact_person_first_name_' + str(contact_person_id))).decode('utf-8')
+        contact_person.middle_name = encrypt_data(request.POST.get('contact_person_middle_name_' + str(contact_person_id))).decode('utf-8')
+        contact_person.last_name = encrypt_data(request.POST.get('contact_person_last_name_' + str(contact_person_id))).decode('utf-8')
+        # contact_person.suffix = request.POST.get('contact_person_suffix_name_' + str(contact_person_id))
+        # contact_person.relationship = request.POST.get('contact_person-relationship_' + str(contact_person_id))
+        # contact_person.contact_number = request.POST.get('contact_person_contact-number_' + str(contact_person_id))
+        contact_person.telephone_number = encrypt_data(request.POST.get('contact_person_contact-tel_' + str(contact_person_id))).decode('utf-8')
+        # contact_person.street = request.POST.get('contact_person_street_' + str(contact_person_id))
+        contact_person.barangay = encrypt_data(request.POST.get('contact_person_barangay_' + str(contact_person_id))).decode('utf-8')
+        contact_person.province = encrypt_data(request.POST.get('contact_person_province_' + str(contact_person_id))).decode('utf-8')
+        contact_person.city = encrypt_data(request.POST.get('contact_person_city_' + str(contact_person_id))).decode('utf-8')
+        # contact_person.region = request.POST.get('contact_person_region_' + str(contact_person_id))
+
+        # Save contact_person data
+        contact_person.save()
+
+        return JsonResponse({'success': True, 'message': 'Contact Person data saved successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+
 
 #parent victim data crud ----------------------------------------------------------------
 
@@ -983,11 +1337,63 @@ def process_incident_form(request):
             case_instance = Case.objects.get(id=case_id)
             handle_evidence_files(request.FILES.getlist('evidence_file'), case_instance)
 
+        # Process addition of new witnesses
+        if 'witness_name' in request.POST:
+            case_id = request.POST.get('case_id')
+            case_instance = Case.objects.get(id=case_id)
+
+            # Get data for all new witnesses
+            witness_data = zip(
+                request.POST.getlist('witness_name'),
+                request.POST.getlist('witness_address'),
+                request.POST.getlist('witness_number'),
+                request.POST.getlist('witness_email')
+            )
+
+            # Create a new Witness object for each set of witness data
+            for name, address, number, email in witness_data:
+                Witness.objects.create(
+                    case_witness=case_instance,
+                    name=name,
+                    address=address,
+                    contact_number=number,
+                    email=email
+                )
+        # Process removal of witnesses
+        witnesses_to_delete = request.POST.getlist('witnesstoDelete')
+        for witness_id in witnesses_to_delete:
+            Witness.objects.filter(id=witness_id).delete()
+        
+        
 
         # Process other fields in the form and save them to Case model
         case_id = request.POST.get('case_id')
         case = Case.objects.get(id=case_id)
         print(case_id)
+        
+        # Retrieve existing witnesses associated with the case
+        existing_witnesses = Witness.objects.filter(case_witness=case)
+
+        # Iterate over existing witnesses and check for changes
+        for witness_instance in existing_witnesses:
+            witness_id = witness_instance.id
+            name = request.POST.get(f'witness_name_{witness_id}')
+            address = request.POST.get(f'witness_address_{witness_id}')
+            number = request.POST.get(f'witness_number_{witness_id}')
+            email = request.POST.get(f'witness_email_{witness_id}')
+            
+            # Check if witness data has been modified
+            if (name != witness_instance.name or
+                address != witness_instance.address or
+                number != witness_instance.contact_number or
+                email != witness_instance.email):
+                
+                # Update the witness instance with new data and save
+                witness_instance.name = name
+                witness_instance.address = address
+                witness_instance.contact_number = number
+                witness_instance.email = email
+                witness_instance.save()
 
         date_latest_incident = request.POST.get('date_latest_incident')
         print(date_latest_incident)
@@ -1072,7 +1478,7 @@ def edit_status(request, status_id):
     if request.method == 'GET':
         try:
             status = Status_History.objects.get(id=status_id)
-            return JsonResponse({'success': True, 'status_description': status.status_description})
+            return JsonResponse({'success': True, 'status_description': status.status_description, 'status_date': status.status_date_added})
         except Status_History.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Status not found'})
         except Exception as e:
@@ -1081,7 +1487,9 @@ def edit_status(request, status_id):
         try:
             status = Status_History.objects.get(id=status_id)
             new_description = request.POST.get('new_description')
+            new_date = request.POST.get('new_date')
             status.status_description = new_description
+            status.status_date_added = new_date
             status.save()
             return JsonResponse({'success': True, 'message': 'Status updated successfully'})
         except Status_History.DoesNotExist:
@@ -1102,6 +1510,15 @@ def delete_status(request, status_id):
     else:
         return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
+def update_case_status(request, case_id):
+    if request.method == 'POST':
+        new_status = request.POST.get('status_case')  # Get the new status from the form data
+        case = get_object_or_404(Case, pk=case_id)  # Get the case object
+        case.status = new_status  # Update the status
+        case.save()  # Save the changes
+        return JsonResponse({'success': True})  # Return a JSON response indicating success
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})  # Return an error response if the request method is not POST
 
 def tite(request):
     # check if what the button want to do. 

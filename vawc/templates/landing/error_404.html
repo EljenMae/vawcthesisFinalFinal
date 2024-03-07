@@ -1,0 +1,20 @@
+{% extends "../base/base.html" %}
+{% block title %}Error 404{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container pt-5 pb-5">
+    <div class="card">
+        <div class="card-body">
+            <a href="{% url 'track_case' %}"><button type="button" class="btn-close d-flex ms-auto" aria-label="Close"></button></a>
+            <div class="row d-flex justify-content-center">
+                <div class="col-lg-6 col-md-6 col-sm-8 text-center">
+                    <img src= "{% static '/img/404.png' %}" class="img-fluid" alt="image" style="width:450px;">
+                </div>
+                <h5 class="text-center">Viewing of Case has Already Expired.</h5>
+            </div>
+      </div>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+{% endblock scripts %}
