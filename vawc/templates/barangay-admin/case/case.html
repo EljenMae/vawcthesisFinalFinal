@@ -13,7 +13,7 @@
             <h1>Case</h1>
         </div>
         <div class="col-auto">
-            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#add_case"><i class="bx bx-plus"></i> Add Case</button>
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#add_case" {% if global.security_status == "encrypted" %}disabled{% endif %}><i class="bx bx-plus"></i> Add Case</button>
         </div>
     </div>
 
